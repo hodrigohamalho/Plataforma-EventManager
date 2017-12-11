@@ -16,7 +16,10 @@ var PORT = config.PORT;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
+/**
+ * Utilizado para testes no lugar do executor, enquanto não temos a url do 
+ * executor definida.
+ */
 app.post("/testexecutor", function(req, res) {
   
     console.log("___ENTER POST EXECUTOR___" + JSON.stringify(req.body));
@@ -24,7 +27,11 @@ app.post("/testexecutor", function(req, res) {
     res.send("OK");
 });
   
-
+/**
+ * Recebe os eventos para serem enviados ao executor,
+ * por enquanto está sendo feito um curto circuito e enviando 
+ * diretamente para o executor na URL configurada.
+ */
 app.post("/event", function(req, res) {
 
   console.log("___ENTER POST EVENT___" + JSON.stringify(req.body));
