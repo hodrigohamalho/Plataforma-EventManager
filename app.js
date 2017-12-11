@@ -1,6 +1,7 @@
 var Client = require('node-rest-client').Client;
 
 var config = require('./config');
+var http = require('http');
 
 // Dependencies
 // ===========================================================
@@ -40,8 +41,11 @@ app.post("/event", function(req, res) {
 
   var args = { data: req.body, headers: { "Content-Type": "application/json" } };
 
-  client.post(config.executorUrl, args, function (data, response) {
-    console.log("EROROR");
+  var reqExec = client.post(config.executorUrl, args, function (data, response) {
+    console.log("Evento enviado para o Executor com sucesso");
+  });
+  reqExec.on('error', function (err) {
+    console.log('request error', err);
   });
 
   res.send("OK");
