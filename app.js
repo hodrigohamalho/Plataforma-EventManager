@@ -1,7 +1,6 @@
 var Client = require('node-rest-client').Client;
 
 var config = require('./config');
-var http = require('http');
 
 // Dependencies
 // ===========================================================
