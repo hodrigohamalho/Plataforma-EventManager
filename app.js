@@ -1,6 +1,9 @@
 var Client = require('node-rest-client').Client;
 
 var config = require('./config');
+var CoreRepository = require("../Plataforma-SDK/services/CoreRepository");
+var Processo = require("../Plataforma-Core/Processo");
+var Presentation = require("../Plataforma-Core/Presentation");
 
 // Dependencies
 // ===========================================================
@@ -15,6 +18,8 @@ var PORT = config.PORT;
 // Set up the Express application to handle data parsing
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+var coreRepository = new CoreRepository();
 
 /**
  * Utilizado para testes no lugar do executor, enquanto não temos a url do 
@@ -35,17 +40,37 @@ app.post("/testexecutor", function(req, res) {
 app.post("/event", function(req, res) {
 
   console.log("___ENTER POST EVENT___" + JSON.stringify(req.body));
-
+  
   var client = new Client();
+
+  // TODO poderia ter sido feito um contain apenas
+  var operations = coreRepository.getOperationsByEvent(req.body.name);
 
   var args = { data: req.body, headers: { "Content-Type": "application/json" } };
 
-  var reqExec = client.post(config.executorUrl, args, function (data, response) {
-    console.log("Evento enviado para o Executor com sucesso");
-  });
-  reqExec.on('error', function (err) {
-    console.log('request error', err);
-  });
+  if (operations.length > 0) { 
+    
+    var reqExec = client.post(config.executorUrl, args, function (data, response) {
+      console.log("Evento enviado para o Executor com sucesso");
+    });
+    reqExec.on('error', function (err) {
+      console.log('request error', err);
+    });
+  }
+
+  // TODO poderia ter sido feito um contain apenas
+  var presentations = coreRepository.getPresentationsByEvent(req.body.name);
+  
+  if (presentations.length > 0) {
+    
+    var reqExec = client.post(config.proxyPresentationUrl, args, function (data, response) {
+      console.log("Evento enviado para o Presentation com sucesso");
+    });
+    reqExec.on('error', function (err) {
+      console.log('request error', err);
+    });
+
+  }
 
   res.send("OK");
 });
