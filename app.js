@@ -2,8 +2,8 @@ var Client = require('node-rest-client').Client;
 
 var config = require('./config');
 var CoreRepository = require("../Plataforma-SDK/services/CoreRepository");
-var Processo = require("../Plataforma-Core/Processo");
-var Presentation = require("../Plataforma-Core/Presentation");
+var Processo = require("../Plataforma-core/Processo");
+var Presentation = require("../Plataforma-core/Presentation");
 
 // Dependencies
 // ===========================================================
