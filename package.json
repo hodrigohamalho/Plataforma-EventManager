@@ -9,11 +9,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "plataforma-sdk": "git+https://github.com/ONSBR/Plataforma-SDK",
-    "plataforma-core": "git+https://github.com/ONSBR/Plataforma-core",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "node-rest-client": "^3.1.0",
-    "nohup": "^0.1.0"
+    "nohup": "^0.1.0",
+    "plataforma-core": "file:../plataforma-core",
+    "plataforma-processmemory": "file:../Plataforma-ProcessMemory",
+    "plataforma-sdk": "file:../Plataforma-SDK"
   }
 }

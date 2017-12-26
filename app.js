@@ -61,6 +61,8 @@ app.post("/event", function(req, res) {
   // TODO poderia ter sido feito um contain apenas
   var presentations = coreRepository.getPresentationsByEvent(req.body.name);
   
+  console.log('presentations.length: ', presentations.length);
+
   if (presentations.length > 0) {
     
     var reqExec = client.post(config.proxyPresentationUrl, args, function (data, response) {
