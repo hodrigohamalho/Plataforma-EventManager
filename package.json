@@ -13,7 +13,7 @@
     "express": "^4.16.2",
     "node-rest-client": "^3.1.0",
     "nohup": "^0.1.0",
-    "plataforma-core": "file:../plataforma-core",
+    "plataforma-core": "file:../Plataforma-core",
     "plataforma-processmemory": "file:../Plataforma-ProcessMemory",
     "plataforma-sdk": "file:../Plataforma-SDK"
   }
