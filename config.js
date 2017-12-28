@@ -1,6 +1,6 @@
 var config = {};
 
-const executorHost = process.EXECUTOR_HOST || "localhost";
+const executorHost = process.env.EXECUTOR_HOST || "localhost";
 
 config.PORT = 8081;
 config.executorUrl = "http://" + executorHost + ":8085/executor";
