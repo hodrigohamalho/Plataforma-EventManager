@@ -4,6 +4,7 @@ var config = require('./config');
 var CoreRepository = require("plataforma-sdk/services/CoreRepository");
 var Processo = require("plataforma-core/Processo");
 var Presentation = require("plataforma-core/Presentation");
+var utils = require("plataforma-sdk/utils");
 
 // Dependencies
 // ===========================================================
@@ -32,6 +33,8 @@ app.post("/testexecutor", function(req, res) {
     res.send("OK");
 });
   
+var prefixEventSystem = "system.event.";
+
 /**
  * Recebe os eventos para serem enviados ao executor,
  * por enquanto está sendo feito um curto circuito e enviando 
@@ -39,16 +42,20 @@ app.post("/testexecutor", function(req, res) {
  */
 app.post("/event", function(req, res) {
 
-  console.log("___ENTER POST EVENT___" + JSON.stringify(req.body));
+  var evento = req.body;
+
+  console.log("___ENTER POST EVENT___" + JSON.stringify(evento));
   
   var client = new Client();
 
+  // TODO os eventos do tipo reprodução ou reprocessamento deve fazer o curto-circuito.
+
   // TODO poderia ter sido feito um contain apenas
-  var operations = coreRepository.getOperationsByEvent(req.body.name);
+  var operations = coreRepository.getOperationsByEvent(evento.name);
 
-  var args = { data: req.body, headers: { "Content-Type": "application/json" } };
+  var args = { data: evento, headers: { "Content-Type": "application/json" } };
 
-  if (operations.length > 0) { 
+  if (operations.length > 0 || utils.isSystemEvent(evento.name)) { 
     
     var reqExec = client.post(config.executorUrl, args, function (data, response) {
       console.log("Evento enviado para o Executor com sucesso");
@@ -57,11 +64,11 @@ app.post("/event", function(req, res) {
       console.log('request error', err);
     });
   } else {
-    console.log("Sem operações para " + req.body.name);
+    console.log("Sem operações para " + evento.name);
   }
 
   // TODO poderia ter sido feito um contain apenas
-  var presentations = coreRepository.getPresentationsByEvent(req.body.name);
+  var presentations = coreRepository.getPresentationsByEvent(evento.name);
   
   if (presentations.length > 0) {
     
