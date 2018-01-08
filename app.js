@@ -71,10 +71,8 @@ app.post("/event", function(req, res) {
   var presentations = coreRepository.getPresentationsByEvent(evento.name);
   
   if (presentations.length > 0) {
-    console.log("consulta de apresentacoes:"+ evento.name);
-    
     let postExecution = client.post(config.proxyPresentationUrl, args, function (data, response) {
-      console.log("Evento enviado para o Presentation com sucesso");
+      console.log("Evento " + evento.name +" enviado para o Presentation com sucesso");
     });
     postExecution.on('error', function (err) {
       console.log('request error', err);
