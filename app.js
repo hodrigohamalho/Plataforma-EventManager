@@ -57,10 +57,10 @@ app.post("/event", function(req, res) {
 
   if (operations.length > 0 || utils.isSystemEvent(evento.name)) { 
     
-    var reqExec = client.post(config.executorUrl, args, function (data, response) {
-      console.log("Evento enviado para o Executor com sucesso");
+    let postExecution = client.post(config.executorUrl, args, function (data, response) {
+      console.log("Evento "+ evento.name + " enviado para o Executor com sucesso");
     });
-    reqExec.on('error', function (err) {
+    postExecution.on('error', function (err) {
       console.log('request error', err);
     });
   } else {
@@ -71,11 +71,10 @@ app.post("/event", function(req, res) {
   var presentations = coreRepository.getPresentationsByEvent(evento.name);
   
   if (presentations.length > 0) {
-    
-    var reqExec = client.post(config.proxyPresentationUrl, args, function (data, response) {
-      console.log("Evento enviado para o Presentation com sucesso");
+    let postExecution = client.post(config.proxyPresentationUrl, args, function (data, response) {
+      console.log("Evento " + evento.name +" enviado para o Presentation com sucesso");
     });
-    reqExec.on('error', function (err) {
+    postExecution.on('error', function (err) {
       console.log('request error', err);
     });
 
