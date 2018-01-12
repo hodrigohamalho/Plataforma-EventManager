@@ -12,7 +12,7 @@ class UpdateSubscribeEndpoint  {
        * por enquanto está sendo feito um curto circuito e enviando 
        * diretamente para o executor na URL configurada.
        */
-      app.put("/updatesubscribe", function(req, res) {
+      app.put("/eventsubscribe", function(req, res) {
         
           var evento = req.body;
         

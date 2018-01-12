@@ -85,7 +85,7 @@ Http Method: PUT
         {"name":"system.event.reproduction","payload":{"instanciaOriginal":"f6648fdb-6d5a-79d8-5852-0a2d892e9a3c"}}
         
 // Evento de atualização de subscrição
-Url: http://localhost:8081/updatesubscribe
+Url: http://localhost:8081/eventsubscribe
 Http Method: PUT
 
     Body: 
