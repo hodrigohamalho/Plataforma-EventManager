@@ -20,7 +20,7 @@ class BrokerControllerLoopback extends BrokerController {
         
         var broker = this;
 
-        app.put("/receiveevent", function(req, res) {
+        app.put("/event", function(req, res) {
             
             var evento = req.body;
         
@@ -38,10 +38,10 @@ class BrokerControllerLoopback extends BrokerController {
         
         var args = { data: evento, headers: { "Content-Type": "application/json" } };
 
-        var urlReceive = "http://localhost:" + config.PORT + "/receiveevent";
+        var urlReceive = `http://localhost:${config.PORT}/event`;
 
         let postExecution = client.put(urlReceive, args, function (data, response) {
-            console.log("Evento "+ evento.name + " enviado em loopback.");
+            console.log(`Evento ${evento.name} enviado em loopback.`);
         });
         postExecution.on('error', function (err) {
             console.log('request error', err);

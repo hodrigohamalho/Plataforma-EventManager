@@ -12,17 +12,12 @@ class ReceiveEventHandler extends EventHandler {
 
     receive(evento) {
         
-        if (this.executor.hasProcessWaitEvent(evento)) {
-            this.executor.sendEventToProcess(evento);
-        } else {
-            console.log("Sem operações para " + evento.name);
-        }
-
-        if (this.executor.hasPresentationWaitEvent(evento)) {
-            this.executor.sendEventToPresentation(evento);
-        } else {
-            console.log("Sem apresentação para " + evento.name);
-        }
+      this.executor.sendEventToProcess(evento);
+      //if (this.executor.hasPresentationWaitEvent(evento)) {
+      //      this.executor.sendEventToPresentation(evento);
+      //  } else {
+      //      console.log("Sem apresentação para " + evento.name);
+      //  }
 
     }
 }
