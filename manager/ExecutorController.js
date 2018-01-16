@@ -25,7 +25,7 @@ class ExecutorController {
 
         var args = { data: evento, headers: { "Content-Type": "application/json" } };
 
-        let postExecution = client.post(config.executorUrl, args, function (data, response) {
+        let postExecution = client.put(config.executorUrl, args, function (data, response) {
           console.log("Evento "+ evento.name + " enviado para o Executor com sucesso");
         });
         postExecution.on('error', function (err) {
