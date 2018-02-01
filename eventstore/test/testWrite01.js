@@ -14,11 +14,13 @@ var evento =
     payload : -74
 }
 
-eventDb.save(evento, 
-            function() {
-                console.log("gravacao ok");
-            },
-            function(err) {
-                console.log("db 'testXYZ' não existe, erro:", err);
-            }
-        );
+
+var  promise = eventDb.save(evento);
+
+promise
+.then((instance_id) => { 
+    console.log("instance id = ", instance_id);
+})
+.catch((e) => {
+    console.log("error = ",e)
+});

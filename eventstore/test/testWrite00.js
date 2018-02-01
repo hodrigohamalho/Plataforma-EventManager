@@ -3,22 +3,27 @@ var EventDb = require("../EventDb");
 var config = 
 { 
     influxip : "localhost",
-    database : "test000"
+    database : "test002"
 } 
 
 eventDb = new EventDb(config);
 
 var evento = 
 {
-    name : "evento04",
-    payload : { val1 : "valor 01", val2 : 3687.74, val3 : "valor 103" }
+    name : "assalto",
+    payload : 
+    { 
+        prato : "pudim", 
+        preco : 0.50, 
+    }
 }
 
-eventDb.save(evento, 
-            function(id) {
-                console.log("gravacao ok, id =", id)
-            },
-            function(err) {
-                console.log("erro:", err);
-            }
-        );
+var  promise = eventDb.save(evento);
+
+promise
+.then((instance_id) => { 
+    console.log("instance id = ", instance_id);
+})
+.catch((e) => {
+    console.log("error = ",e)
+});
