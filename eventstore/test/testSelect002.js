@@ -1,19 +1,15 @@
-var EventDb = require("../EventDb");
+var EventStore = require("../EventStore");
+const Config = require("./testConfig.js");
 
-var config = 
-{ 
-    influxip : "localhost",
-    database : "test003"
-} 
 
-eventDb = new EventDb(config);
+eventStore = new EventStore(new Config().get());
 
 // will not find
-var start = 1517514814000; 
-var end =   1517514815000; 
+var start = 1517514814; 
+var end =   1517514815; 
 
 
-var  promise = eventDb.findByInterval(start, end);
+var  promise = eventStore.findByInterval(start, end);
 
 promise
 .then((events) => { 

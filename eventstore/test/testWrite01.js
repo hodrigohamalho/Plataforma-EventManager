@@ -1,13 +1,8 @@
-var EventDb = require("../EventDb");
+var EventStore = require("../EventStore");
+const Config = require("./testConfig.js");
 
-var config = 
-{ 
-    influxip : "localhost",
-    database : "testXYZ"
-} 
 
-eventDb = new EventDb(config);
-
+eventStore = new EventStore(new Config().get());
 var evento = 
 {
     name : "evento00",
@@ -15,7 +10,7 @@ var evento =
 }
 
 
-var  promise = eventDb.save(evento);
+var  promise = eventStore.save(evento);
 
 promise
 .then((instance_id) => { 

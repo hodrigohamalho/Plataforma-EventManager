@@ -6,10 +6,9 @@ eventStore = new EventStore(new Config().get());
 
 
 var start = 1517513761893;
-var end =   1517514095963;
 var name = "colacao";
 
-var  promise = eventStore.findByEventInterval(name, start, end);
+var  promise = eventStore.findByEventInterval(name, start);
 
 promise
 .then((events) => { 

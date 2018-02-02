@@ -4,12 +4,12 @@ const Config = require("./testConfig.js");
 
 eventStore = new EventStore(new Config().get());
 
-
+// will find
 var start = 1517513761893;
-var end =   1517514095963;
-var name = "colacao";
+//var end =   1517513864517000000;
 
-var  promise = eventStore.findByEventInterval(name, start, end);
+
+var  promise = eventStore.findByInterval(start);
 
 promise
 .then((events) => { 
@@ -28,7 +28,6 @@ promise
                         , ", payload.prato =", payload.prato
                         , ", payload.preco =", payload.preco);
         }  
-        
     }
 })
 .catch((e) => {
