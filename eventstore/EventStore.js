@@ -19,8 +19,16 @@ class EventStore {
 
   /**
    * @method save 
-   * @param {*} event contains { name : "event-name", payload : "event-payload" }
-   * @description saves an event in the 'measurement' "eventos", 
+   * @param {*} event contains 
+    event: {
+       name : "event-name",
+       payload : {},    
+       user : {
+           id : "user-id",
+           name : "user-name"
+       }
+    }
+   * @description saves an event in the 'measurement' "events", 
    * with tag "name" containing 'event.name', tag "instance_id" containing
    * the instance id created, and the value "payload" containing 'event.payload'
    * @returns a Promisse with the instance id created, if success; 
@@ -43,6 +51,11 @@ class EventStore {
             { 
                 prato : "churrasco", 
                 preco : 38.80, 
+            },
+            user : 
+            {
+                name : "Joao da Silva",
+                id : "RI - 12874"
             }
         }
 
@@ -58,6 +71,7 @@ class EventStore {
    */
   save(event) {
     var url = "http://" + this.config.influxip + ":8086/write";
+    console.log("event =", event);
 
     var req = unirest("POST", url);
 
@@ -70,12 +84,23 @@ class EventStore {
 
     var payload = JSON.stringify(event.payload).replace(/"/g, '\\"');
 
-    var line = "eventos" + "," + 
+    var user_name = event.user.name.replace(/ /g, "\\ ");
+    //user_name.replace(/"/g, '\\');
+
+    var user_id = event.user.id.replace(/ /g, "\\ ");
+
+
+    console.log("user name=", user_name);
+    console.log("user id=", user_id);
+
+    var line = "events" + "," + 
     "name=" + event.name + "," + 
-    "instance_id=" + instance_id +  
+    "instance_id=" + instance_id + ","  +
+    "user_id=" + user_id + "," +
+    "user_name=" + user_name + 
     " payload=" + "\"" + payload + "\""; 
 
-
+    console.log("line =", line);
     req.send(line);
     
     return new Promise((resolve, reject) => {

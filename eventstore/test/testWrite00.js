@@ -5,13 +5,27 @@ const Config = require("./testConfig.js");
 eventStore = new EventStore(new Config().get());
 
 // *************
-eventStore.save({ name : "cafedamanha", payload : { prato : "suco", preco : 6.50 } })
-.then((instance_id) => { 
-    console.log("instance id = ", instance_id);
-})
-.catch((e) => {
-    console.log("error = ",e)
-});
+var event00 = {
+    name : "colacao",
+    payload : 
+    { 
+        prato : "suco de melancia", 
+        preco : 7.00, 
+    },
+    user : 
+    {
+        name : "Maria das Neves",
+        id : "PV - 4587"
+    }    
+}
+eventStore.save(event00)
+    .then((instance_id) => { 
+        console.log("instance id = ", instance_id);
+    })
+    .catch((e) => {
+        console.log("error = ",e)
+    });
+
 /* 
 
 // *************
