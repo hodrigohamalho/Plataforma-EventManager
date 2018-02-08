@@ -11,10 +11,13 @@
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
+    "influx": "^5.0.7",
     "node-rest-client": "^3.1.0",
     "nohup": "^0.1.0",
     "plataforma-core": "git+https://github.com/ONSBR/Plataforma-core",
     "plataforma-processmemory": "git+https://github.com/ONSBR/Plataforma-ProcessMemory",
-    "plataforma-sdk": "git+https://github.com/ONSBR/Plataforma-SDK"
+    "plataforma-sdk": "git+https://github.com/ONSBR/Plataforma-SDK",
+    "unirest": "^0.5.1",
+    "uuid-v4": "^0.1.0"
   }
 }
