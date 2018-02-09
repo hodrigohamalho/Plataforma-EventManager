@@ -6,16 +6,16 @@ try {
 
     // *************
     var event00 = {
-        name : "colacao",
+        name : "ceia",
         payload : 
         { 
             prato : "iogurte", 
-            preco : 4.30, 
+            preco : 32.70, 
         },
         user : 
         {
-            name : "Solange Inês, III",
-            id : "VD - 8547"
+            name : "Jean Luc-Ponty",
+            id : "TE - 0057"
         }    
     }
     eventStore.save(event00)

@@ -7,7 +7,7 @@ class Config {
         var data = 
         {
             influxip : "localhost",
-            database : "test005"
+            database : "test013"
         }
         return data;
     }
