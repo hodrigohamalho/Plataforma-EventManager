@@ -14,8 +14,13 @@ class EventStore {
    */
   constructor(config) {
     this.config = config;
-
+    this.createDb()
+        .catch((e) => {
+            console.log("error save = '",e,"'");
+            throw e;
+        });
   }
+
 
   /**
    * @method save 
@@ -70,28 +75,26 @@ class EventStore {
         });  
    */
   save(event) {
+
     var url = "http://" + this.config.influxip + ":8086/write";
-    console.log("event =", event);
 
     var req = unirest("POST", url);
 
     req.query({
-      "db": this.config.database,
-      "precision": "ms"
+    "db": this.config.database,
+    "precision": "ms"
     });
 
     var instance_id = uuid();
 
     var payload = JSON.stringify(event.payload).replace(/"/g, '\\"');
 
-    var user_name = event.user.name.replace(/ /g, "\\ ");
-    //user_name.replace(/"/g, '\\');
+    var user_name = this.format(event.user.name);
+    var user_id = this.format(event.user.id);
 
-    var user_id = event.user.id.replace(/ /g, "\\ ");
-
-
-    console.log("user name=", user_name);
+/*     console.log("user name=", user_name);
     console.log("user id=", user_id);
+ */
 
     var line = "events" + "," + 
     "name=" + event.name + "," + 
@@ -100,18 +103,18 @@ class EventStore {
     "user_name=" + user_name + 
     " payload=" + "\"" + payload + "\""; 
 
-    console.log("line =", line);
+//    console.log("line =", line);
     req.send(line);
     
     return new Promise((resolve, reject) => {
-      req.end(function (res) {
-        if (res.error) {
-          reject(res.error);
-        }
-        else {
-          resolve(instance_id);
-        }
-      });
+        req.end(function (res) {
+            if (res.error) {
+            reject(res.error);
+            }
+            else {
+            resolve(instance_id);
+            }
+        });
     });
   }
 
@@ -372,6 +375,46 @@ class EventStore {
   
   } 
 
+
+  createDb() {
+    var url = "http://" + this.config.influxip + ":8086/query";
+    //console.log("url =",url);
+
+    var req = unirest("POST", url);
+
+    req.headers({
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-www-form-urlencoded"
+    });
+    
+    var cmd = "CREATE DATABASE " + this.config.database;
+    //console.log("cmd =",cmd);
+
+    req.form({
+        "q": cmd
+    });
+
+    var self = this;
+    return new Promise((resolve, reject) => {
+        req.end(function (res) {
+          if (res.error) {
+            reject(res.error);
+          }
+          else {
+            resolve("db " + self.config.database + " created");
+          }
+        });
+      });    
+  }
+
+  
+  format(str) {      
+    var aux = str;
+    aux = aux.replace(/ /g, "\\ ");
+    aux = aux.replace(/=/g, "\\=");
+    aux = aux.replace(/,/g, "\\,");
+    return aux;
+  }
 
 }
 module.exports = EventStore;
