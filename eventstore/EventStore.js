@@ -12,7 +12,7 @@ class EventStore {
    *     database : "some-database"
    * }
    */
-  constructor(config = { influxip : "localhost", database : "eventmanager"} ) {
+  constructor(config = { influxip : "localhost", database : "event_manager"} ) {
     this.config = config;
     this.fieldsToSelect = " \"time\", \"instance_id\", \"name\", \"payload\", \"user_id\", \"user_name\"";
     this.createDb()
