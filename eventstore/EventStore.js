@@ -5,22 +5,36 @@ const uuid = require('uuid-v4');
 class EventStore {
 
   /**
-   * 
+   * @description constructor
    * @param {*} config contains 
    * { 
    *     influxip : "some-ip",
    *     database : "some-database"
    * }
    */
-  constructor(config) {
+  constructor(config = { influxip : "localhost", database : "event_manager"} ) {
     this.config = config;
-
+    this.fieldsToSelect = " \"time\", \"instance_id\", \"name\", \"payload\", \"user_id\", \"user_name\"";
+    this.createDb()
+        .catch((e) => {
+            console.log("error save = '",e,"'");
+            throw e;
+        });
   }
+
 
   /**
    * @method save 
-   * @param {*} event contains { name : "event-name", payload : "event-payload" }
-   * @description saves an event in the 'measurement' "eventos", 
+   * @param {*} event contains 
+    event: {
+       name : "event-name",
+       payload : {},    
+       user : {
+           id : "user-id",
+           name : "user-name"
+       }
+    }
+   * @description saves an event in the 'measurement' "events", 
    * with tag "name" containing 'event.name', tag "instance_id" containing
    * the instance id created, and the value "payload" containing 'event.payload'
    * @returns a Promisse with the instance id created, if success; 
@@ -43,6 +57,11 @@ class EventStore {
             { 
                 prato : "churrasco", 
                 preco : 38.80, 
+            },
+            user : 
+            {
+                name : "Joao da Silva",
+                id : "RI - 12874"
             }
         }
 
@@ -57,40 +76,138 @@ class EventStore {
         });  
    */
   save(event) {
-    var url = "http://" + this.config.influxip + ":8086/write";
-
-    var req = unirest("POST", url);
-
-    req.query({
-      "db": this.config.database,
-      "precision": "ms"
-    });
-
-    var instance_id = uuid();
-
-    var payload = JSON.stringify(event.payload).replace(/"/g, '\\"');
-
-    var line = "eventos" + "," + 
-    "name=" + event.name + "," + 
-    "instance_id=" + instance_id +  
-    " payload=" + "\"" + payload + "\""; 
-
-
-    req.send(line);
-    
     return new Promise((resolve, reject) => {
-      req.end(function (res) {
-        if (res.error) {
-          reject(res.error);
-        }
-        else {
-          resolve(instance_id);
-        }
-      });
+        var url = "http://" + this.config.influxip + ":8086/write";
+
+        var req = unirest("POST", url);
+
+        req.query({
+        "db": this.config.database,
+        "precision": "ms"
+        });
+
+        var instance_id = uuid();
+
+        var payload = JSON.stringify(event.payload).replace(/"/g, '\\"');
+
+        var user_name = this.format(event.user.name);
+        var user_id = this.format(event.user.id);
+
+    /*     console.log("user name=", user_name);
+        console.log("user id=", user_id);
+    */
+
+        var line = "events" + "," + 
+        "name=" + event.name + "," + 
+        "instance_id=" + instance_id + ","  +
+        "user_id=" + user_id + "," +
+        "user_name=" + user_name + 
+        " payload=" + "\"" + payload + "\""; 
+
+
+        req.send(line);
+    
+    
+        req.end(function (res) {
+            if (res.error) {
+                reject(res.error);
+            }
+            else {
+                resolve(instance_id);
+            }
+        });
     });
   }
 
+  /**
+   * @description Retrieves a set of instances that have a `user.name` 
+   * that matches exactly the one provided
+   * @param {*} name 
+   * @returns a Promise
+   * @example
+        var EventStore = require("../EventStore");
+        const Config = require("./testConfig.js");
+
+        eventStore = new EventStore(new Config().get());
+
+        var name = "Maria das Neves 1";
+
+        var  promise = eventStore.findByName(name);
+
+        promise
+        .then((events) => { 
+            var size = events.length; 
+            if (size == 0) {
+                console.log("No event found");
+            }
+            else {
+                for (var i = 0;  i < size; i++) {
+                    var event = events[i];
+                    var payload = event.payload;
+                    console.log("evento", i, ":"
+                                , "ts =", event.timestamp
+                                , ", name =", event.name
+                                , ", instanceId =", event.instanceId
+                                , ", payload.prato =", payload.prato
+                                , ", payload.preco =", payload.preco
+                                , ", user name = ", event.user.name
+                                , ", user id = ", event.user.id);
+                }  
+                
+            }
+        })
+        .catch((e) => {
+            console.log("error = ",e)
+        });
+   */
+  findByUserName(name) {
+    var select = "SELECT " + this.fieldsToSelect + " from \"events\" WHERE \"user_name\" = '" + name + "'";
+    return this.find(select);
+  }
  
+  /**
+   * @description Retrieves a set of instances that have a `user.id` 
+   * that matches exactly the one provided
+   * @param {*} id 
+   * @example
+        var EventStore = require("../EventStore");
+        const Config = require("./testConfig.js");
+
+        eventStore = new EventStore(new Config().get());
+
+        var name = "PV - 4587";
+        var  promise = eventStore.findByUserId(name);
+
+        promise
+        .then((events) => { 
+            var size = events.length; 
+            if (size == 0) {
+                console.log("No event found");
+            }
+            else {
+                for (var i = 0;  i < size; i++) {
+                    var event = events[i];
+                    var payload = event.payload;
+                    console.log("evento", i, ":"
+                                , "ts =", event.timestamp
+                                , ", name =", event.name
+                                , ", instanceId =", event.instanceId
+                                , ", payload.prato =", payload.prato
+                                , ", payload.preco =", payload.preco
+                                , ", user name = ", event.user.name
+                                , ", user id = ", event.user.id);
+                }  
+                
+            }
+        })
+        .catch((e) => {
+            console.log("error = ",e)
+        });
+   */
+  findByUserId(id) {
+    var select = "SELECT " + this.fieldsToSelect + " from \"events\" WHERE \"user_id\" = '" + id + "'";
+    return this.find(select);
+  }
 
   /**
    * @method findByInterval
@@ -135,11 +252,13 @@ class EventStore {
                   var event = events[i];
                   var payload = event.payload;
                   console.log("evento", i, ":"
-                              , "ts =", event.timestamp
-                              , ", name =", event.name
-                              , ", instanceId =", event.instanceId
-                              , ", payload.prato =", payload.prato
-                              , ", payload.preco =", payload.preco);
+                            , "ts =", event.timestamp
+                            , ", name =", event.name
+                            , ", instanceId =", event.instanceId
+                            , ", payload.prato =", payload.prato
+                            , ", payload.preco =", payload.preco
+                            , ", user name = ", event.user.name
+                            , ", user id = ", event.user.id);
               }  
               console.log(events);
           }
@@ -155,7 +274,7 @@ class EventStore {
     var newEnd = end * 1000000;
     var newStart = start * 1000000;
 
-    var select = "SELECT * from \"eventos\" WHERE \"time\" > " + newStart + " AND \"time\" < " + newEnd;
+    var select = "SELECT " + this.fieldsToSelect + " from \"events\" WHERE \"time\" > " + newStart + " AND \"time\" < " + newEnd;
     return this.find(select);
  
   }
@@ -205,11 +324,13 @@ class EventStore {
                   var event = events[i];
                   var payload = event.payload;
                   console.log("evento", i, ":"
-                              , "ts =", event.timestamp
-                              , ", name =", event.name
-                              , ", instanceId =", event.instanceId
-                              , ", payload.prato =", payload.prato
-                              , ", payload.preco =", payload.preco);
+                            , "ts =", event.timestamp
+                            , ", name =", event.name
+                            , ", instanceId =", event.instanceId
+                            , ", payload.prato =", payload.prato
+                            , ", payload.preco =", payload.preco
+                            , ", user name = ", event.user.name
+                            , ", user id = ", event.user.id);
               }  
               
           }
@@ -222,7 +343,7 @@ class EventStore {
 
     var newEnd = end * 1000000;
     var newStart = start * 1000000;
-    var select = "SELECT * from \"eventos\" WHERE \"time\" > " + newStart + " AND \"time\" < " + newEnd 
+    var select = "SELECT " + this.fieldsToSelect + " from \"events\" WHERE \"time\" > " + newStart + " AND \"time\" < " + newEnd 
                   + " AND \"name\" = " + "'" + name + "'";
 
     return this.find(select);
@@ -234,16 +355,11 @@ class EventStore {
    * @description commands used by other functions are grouped in this function
    */
   find(select) {
-    //console.log(select);
-
+//      console.log("select =", select);
     var url = "http://" + this.config.influxip + ":8086/query";
 
     var req = unirest("POST", url);
-    
-/*     req.query({
-      "pretty": "true"
-    });
- */    
+ 
     req.headers({
       "Content-Type": "application/x-www-form-urlencoded"
     });
@@ -281,25 +397,23 @@ class EventStore {
                 "statement_id": 0,
                 "series": [
                     {
-                        "name": "eventos",
+                        "name": "events",
                         "columns": [
                             "time",
                             "instance_id",
                             "name",
-                            "payload"
+                            "payload",
+                            "user_id",
+                            "user_name"
                         ],
                         "values": [
                             [
-                                "2018-02-01T19:36:44.926Z",
-                                "989caaf1-4bcb-4a65-a142-fec1a9f1bf59",
+                                "2018-02-09T13:34:44.642Z",
+                                "c4f22880-e7bf-4ec0-874d-3e2d13a43492",
                                 "colacao",
-                                "{\"prato\":\"maçã\",\"preco\":1.1}"
-                            ],
-                            [
-                                "2018-02-01T19:37:08.395Z",
-                                "9d0ecd35-a83e-4c66-8079-d0fcb188b65d",
-                                "almoco",
-                                "{\"prato\":\"salada\",\"preco\":18.9}"
+                                "{\"prato\":\"suco de melancia\",\"preco\":7}",
+                                "PV - 4587",
+                                "Maria das Neves 0"
                             ]
                         ]
                     }
@@ -310,15 +424,11 @@ class EventStore {
 
     into:
 
-    [ { timestamp: '2018-02-01T19:36:44.926Z',
-        instanceId: '989caaf1-4bcb-4a65-a142-fec1a9f1bf59',
+    [ { timestamp: '2018-02-09T13:53:36.03Z',
+        instanceId: 'd64c0264-8ec1-4723-991f-1bf3c6d8cd43',
         name: 'colacao',
-        payload: { prato: 'maçã', preco: 1.1 } },
-      { timestamp: '2018-02-01T19:37:08.395Z',
-        instanceId: '9d0ecd35-a83e-4c66-8079-d0fcb188b65d',
-        name: 'almoco',
-        payload: { prato: 'salada', preco: 18.9 } } ]
-      
+        payload: { prato: 'suco de melancia', preco: 7 },
+        user: { name: 'PV - 4587', id: 'Maria das Neves 1' } } ]   
   */
   parseValues(results) {
     return new Promise((resolve, reject) => { 
@@ -334,7 +444,11 @@ class EventStore {
               timestamp : values[i][0],
               instanceId : values[i][1],              
               name : values[i][2],
-              payload : JSON.parse(values[i][3])
+              payload : JSON.parse(values[i][3]),
+              user : {
+                  name : values[i][4],
+                  id : values[i][5]
+              }
             }
             events[i] = event;
           }
@@ -347,6 +461,46 @@ class EventStore {
   
   } 
 
+
+  createDb() {
+    var url = "http://" + this.config.influxip + ":8086/query";
+    //console.log("url =",url);
+
+    var req = unirest("POST", url);
+
+    req.headers({
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-www-form-urlencoded"
+    });
+    
+    var cmd = "CREATE DATABASE " + this.config.database;
+    //console.log("cmd =",cmd);
+
+    req.form({
+        "q": cmd
+    });
+
+    var self = this;
+    return new Promise((resolve, reject) => {
+        req.end(function (res) {
+          if (res.error) {
+            reject(res.error);
+          }
+          else {
+            resolve("db " + self.config.database + " created");
+          }
+        });
+      });    
+  }
+
+  
+  format(str) {      
+    var aux = str;
+    aux = aux.replace(/ /g, "\\ ");
+    aux = aux.replace(/=/g, "\\=");
+    aux = aux.replace(/,/g, "\\,");
+    return aux;
+  }
 
 }
 module.exports = EventStore;

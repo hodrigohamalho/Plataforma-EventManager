@@ -5,11 +5,11 @@ const Config = require("./testConfig.js");
 eventStore = new EventStore(new Config().get());
 
 // will find
-var start = 1517513761893;
-//var end =   1517513864517000000;
+var start = 1518197029012;
+var end =   1518197032665;
 
 
-var  promise = eventStore.findByInterval(start);
+var  promise = eventStore.findByInterval(start, end);
 
 promise
 .then((events) => { 
@@ -26,7 +26,9 @@ promise
                         , ", name =", event.name
                         , ", instanceId =", event.instanceId
                         , ", payload.prato =", payload.prato
-                        , ", payload.preco =", payload.preco);
+                        , ", payload.preco =", payload.preco
+                        , ", user name = ", event.user.name
+                        , ", user id = ", event.user.id);
         }  
     }
 })

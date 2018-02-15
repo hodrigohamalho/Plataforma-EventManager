@@ -1,15 +1,10 @@
 var EventStore = require("../EventStore");
 const Config = require("./testConfig.js");
 
-
 eventStore = new EventStore(new Config().get());
 
-
-var start = 1517513761893;
-var end =   1517514095963;
-var name = "colacao";
-
-var  promise = eventStore.findByEventInterval(name, start, end);
+var name = "PV - 4587";
+var  promise = eventStore.findByUserId(name);
 
 promise
 .then((events) => { 
@@ -26,7 +21,9 @@ promise
                         , ", name =", event.name
                         , ", instanceId =", event.instanceId
                         , ", payload.prato =", payload.prato
-                        , ", payload.preco =", payload.preco);
+                        , ", payload.preco =", payload.preco
+                        , ", user name = ", event.user.name
+                        , ", user id = ", event.user.id);
         }  
         
     }

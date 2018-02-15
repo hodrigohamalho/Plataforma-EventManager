@@ -1,21 +1,21 @@
 var EventStore = require("../EventStore");
-const Config = require("./testConfig.js");
+
 
 try {
-    eventStore = new EventStore(new Config().get());
+    eventStore = new EventStore();
 
     // *************
     var event00 = {
-        name : "colacao",
+        name : "assaltoageladeira",
         payload : 
         { 
-            prato : "iogurte", 
-            preco : 4.30, 
+            prato : "bolo com sorvete", 
+            preco : 157.80, 
         },
         user : 
         {
-            name : "Solange Inês, III",
-            id : "VD - 8547"
+            name : "Joe Satriani",
+            id : "GM - 1173"
         }    
     }
     eventStore.save(event00)
@@ -30,3 +30,4 @@ try {
 catch(e) {
     console.log("error test =",e);
 }
+
