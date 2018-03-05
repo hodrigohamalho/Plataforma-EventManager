@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/Jeffail/gabs"
+  packages = ["."]
+  revision = "2a3aa15961d5fee6047b8151b67ac2f08ba2c48c"
+  version = "1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/gin-contrib/sse"
   packages = ["."]
@@ -66,6 +72,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "46bda7b8ddc2da93b04c049f3c511b364c8e59c9c14692d3383849f560957a9b"
+  inputs-digest = "8515930af7a81b8ee8743ab6cc00b5df2e88142d46601d91990214e082945895"
   solver-name = "gps-cdcl"
   solver-version = 1
