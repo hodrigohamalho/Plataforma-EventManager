@@ -98,7 +98,6 @@ func influxWrite(point string) string {
 	payload := strings.NewReader(point)
 	req, _ := http.NewRequest("POST", _url, payload)
 	res, _ := http.DefaultClient.Do(req)
-	st := res.StatusCode
 	defer res.Body.Close()
 	b, _ := ioutil.ReadAll(res.Body)
 	return string(b)
