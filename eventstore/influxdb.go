@@ -87,9 +87,15 @@ func executeStatement(stmt string) string {
 	payload := strings.NewReader(url.PathEscape(fmt.Sprintf("q=%s", stmt)))
 	req, _ := http.NewRequest("POST", _url, payload)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	res, _ := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return ""
+	}
 	defer res.Body.Close()
-	b, _ := ioutil.ReadAll(res.Body)
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return ""
+	}
 	return string(b)
 }
 
@@ -97,7 +103,10 @@ func influxWrite(point string) string {
 	_url := fmt.Sprintf("%s/write?u=%s&p=%s&db=%s&rp=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""), "event_manager", "platform_events")
 	payload := strings.NewReader(point)
 	req, _ := http.NewRequest("POST", _url, payload)
-	res, _ := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return ""
+	}
 	defer res.Body.Close()
 	b, _ := ioutil.ReadAll(res.Body)
 	return string(b)
