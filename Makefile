@@ -4,5 +4,9 @@ linux:
 
 disable_cgo:
 		set CGO_ENABLED=0
+run_windows:
+		set GOOS=windows
+		go run main.go
+
 
 
