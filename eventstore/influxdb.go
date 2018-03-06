@@ -9,17 +9,27 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/Jeffail/gabs"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/infra"
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {
-	if shouldCreateDatabase("event_manager") {
-		createDatabase("event_manager")
-		createRetentionPolicy("platform_events", "event_manager")
-	}
+	log.Info("Connecting to InfluxDB")
+	go (func() {
+		log.Info("Trying to connect to InfluxDB")
+		for shouldCreateDatabase("event_manager") {
+			log.Info("Trying to create database")
+			createDatabase("event_manager")
+			log.Info("Trying to create Retention Policy")
+			createRetentionPolicy("platform_events", "event_manager")
+			time.Sleep(5 * time.Second)
+		}
+	})()
+
 }
 
 //Push event to Influx
