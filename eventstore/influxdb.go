@@ -61,7 +61,10 @@ func shouldCreateDatabase(name string) bool {
 }
 
 func showRetentionPolicy(dbname string) []string {
-	r := executeStatement(fmt.Sprintf("SHOW RETENTION POLICIES ON %s", dbname))
+	r, err := executeStatement(fmt.Sprintf("SHOW RETENTION POLICIES ON %s", dbname))
+	if err != nil {
+		return []string{}
+	}
 	jsonParsed, _ := gabs.ParseJSON([]byte(r))
 	b := jsonParsed.Path("results.series.values").String()
 	//TODO refactor
@@ -72,7 +75,10 @@ func showRetentionPolicy(dbname string) []string {
 }
 
 func showDatabases() []string {
-	r := executeStatement("SHOW DATABASES")
+	r, err := executeStatement("SHOW DATABASES")
+	if err != nil {
+		return []string{}
+	}
 	jsonParsed, _ := gabs.ParseJSON([]byte(r))
 	b := jsonParsed.Path("results.series.values").String()
 	//TODO refactor
@@ -82,21 +88,21 @@ func showDatabases() []string {
 	return strings.Split(b, ",")
 }
 
-func executeStatement(stmt string) string {
+func executeStatement(stmt string) (string, error) {
 	_url := fmt.Sprintf("%s/query?u=%s&p=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""))
 	payload := strings.NewReader(url.PathEscape(fmt.Sprintf("q=%s", stmt)))
 	req, _ := http.NewRequest("POST", _url, payload)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return ""
+		return "", err
 	}
 	defer res.Body.Close()
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return string(b)
+	return string(b), nil
 }
 
 func influxWrite(point string) string {
