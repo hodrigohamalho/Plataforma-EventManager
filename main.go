@@ -1,12 +1,24 @@
 package main
 
 import (
+	"os"
+
+	"github.com/ONSBR/Plataforma-EventManager/infra"
+
 	"github.com/ONSBR/Plataforma-EventManager/actions"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
+func init() {
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
+}
+
 func main() {
+	log.Info("Starting Event Manager")
+	port := infra.GetEnv("PORT", "8081")
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
@@ -15,6 +27,7 @@ func main() {
 		})
 	})
 	r.PUT("/sendevent", func(c *gin.Context) {
+		log.Info("Pushing event to executor")
 		event := new(domain.Event)
 		if err := c.BindJSON(event); err != nil {
 			c.JSON(400, gin.H{
@@ -30,5 +43,6 @@ func main() {
 			})
 		}
 	})
-	r.Run()
+	log.Info("Listening on: 0.0.0.0:" + port)
+	r.Run(":" + port)
 }

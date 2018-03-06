@@ -30,20 +30,16 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/influxdata/influxdb"
-  packages = [
-    "client/v2",
-    "models",
-    "pkg/escape"
-  ]
-  revision = "60d27e6995558f38a39e90b35a92cbac080310a3"
-  version = "v1.4.3"
-
-[[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
+
+[[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
 
 [[projects]]
   name = "github.com/ugorji/go"
@@ -53,8 +49,17 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9"
 
 [[projects]]
@@ -72,6 +77,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8515930af7a81b8ee8743ab6cc00b5df2e88142d46601d91990214e082945895"
+  inputs-digest = "b051703fd5c34043c66992f479463d111df2085978b236b03df1da5fcb82c664"
   solver-name = "gps-cdcl"
   solver-version = 1
