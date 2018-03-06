@@ -7,6 +7,12 @@ import (
 )
 
 func PushEventToExecutor(event domain.Event) error {
+	if event.Owner == "" {
+		event.Owner = "anonymous"
+	}
+	if event.AppOrigin == "" {
+		event.AppOrigin = "anonymous"
+	}
 	if err := executor.PushEvent(event); err != nil {
 		return err
 	}

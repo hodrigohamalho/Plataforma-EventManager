@@ -28,7 +28,6 @@ func influxPush(event domain.Event) error {
 	if s != "" {
 		return errors.New(s)
 	}
-	fmt.Println(s)
 	return nil
 }
 
@@ -100,7 +99,6 @@ func influxWrite(point string) string {
 	req, _ := http.NewRequest("POST", _url, payload)
 	res, _ := http.DefaultClient.Do(req)
 	st := res.StatusCode
-	fmt.Println(st)
 	defer res.Body.Close()
 	b, _ := ioutil.ReadAll(res.Body)
 	return string(b)

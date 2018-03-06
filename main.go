@@ -20,7 +20,7 @@ func main() {
 			c.JSON(400, gin.H{
 				"message": err.Error(),
 			})
-		} else if err := actions.SendEventToExecutor(*event); err != nil {
+		} else if err := actions.PushEventToExecutor(*event); err != nil {
 			c.JSON(400, gin.H{
 				"message": err.Error(),
 			})
