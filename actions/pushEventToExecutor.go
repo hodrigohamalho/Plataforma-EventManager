@@ -14,9 +14,7 @@ func PushEventToExecutor(event domain.Event) error {
 	if event.AppOrigin == "" {
 		event.AppOrigin = "anonymous"
 	}
-	if err := executor.PushEvent(event); err != nil {
-		return err
-	}
+	go executor.PushEvent(event)
 	log.Info("Saving event to EventStore")
 	return eventstore.Push(event)
 }

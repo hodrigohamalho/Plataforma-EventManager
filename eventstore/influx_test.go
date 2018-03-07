@@ -39,10 +39,12 @@ func TestShouldCreateRetentionPolicy(t *testing.T) {
 }
 
 func TestShouldPushEventToInflux(t *testing.T) {
-	createDatabase("event_manager")
-	createRetentionPolicy("platform_events", "event_manager")
+	createDatabase("teste")
+	createRetentionPolicy("teste", "teste")
 	e := domain.Event{
-		Name: "name",
+		Name:      "name",
+		Owner:     "a",
+		AppOrigin: "b",
 		Payload: map[string]interface{}{
 			"origin":  "1",
 			"destiny": "2",
@@ -51,5 +53,35 @@ func TestShouldPushEventToInflux(t *testing.T) {
 	err := influxPush(e)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestShouldCountEventsInflux(t *testing.T) {
+	createDatabase("teste")
+	createRetentionPolicy("teste", "teste")
+	pushEvents(5, "evt1", "a", "gol1")
+	pushEvents(15, "evt2", "b", "gol1")
+	if totalEventsByField("name", "evt1", "1h") != 5 {
+		t.Fail()
+	}
+	if len(queryEvents("name", "evt1", "1h")) != 5 {
+		t.Fail()
+	}
+	executeStatement(`DROP DATABASE "teste"`)
+
+}
+
+func pushEvents(n int, name, owner, appOrigin string) {
+	for i := 0; i < n; i++ {
+		e := domain.Event{
+			Name:      name,
+			Owner:     owner,
+			AppOrigin: appOrigin,
+			Payload: map[string]interface{}{
+				"origin":  "1",
+				"destiny": "2",
+			},
+		}
+		influxPush(e)
 	}
 }

@@ -21,13 +21,14 @@ func init() {
 	log.Info("Connecting to InfluxDB")
 	go (func() {
 		log.Info("Trying to connect to InfluxDB")
-		for shouldCreateDatabase("event_manager") {
+		for shouldCreateDatabase(infra.GetEnv("DATABASE", "teste")) {
 			log.Info("Trying to create database")
-			createDatabase("event_manager")
+			createDatabase(infra.GetEnv("DATABASE", "teste"))
 			log.Info("Trying to create Retention Policy")
-			createRetentionPolicy("platform_events", "event_manager")
+			createRetentionPolicy(infra.GetEnv("RETENTION_POLICY", "teste"), infra.GetEnv("DATABASE", "teste"))
 			time.Sleep(5 * time.Second)
 		}
+		log.Info("Connected to influx")
 	})()
 
 }
@@ -45,7 +46,7 @@ func compileEventToLintProtocol(event domain.Event) string {
 	//cpu_load_short,host=server02,region=us-west value=0.55 1422568543702900257
 	s, _ := json.Marshal(event)
 	encoded := base64.StdEncoding.EncodeToString(s)
-	return fmt.Sprintf(`events,name=%s count=1,data="%s"`, event.Name, string(encoded))
+	return fmt.Sprintf(`events,name=%s,owner=%s,appOrigin=%s count=1,data="%s"`, event.Name, event.Owner, event.AppOrigin, string(encoded))
 }
 
 func getBaseUrl() string {
@@ -116,7 +117,7 @@ func executeStatement(stmt string) (string, error) {
 }
 
 func influxWrite(point string) string {
-	_url := fmt.Sprintf("%s/write?u=%s&p=%s&db=%s&rp=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""), "event_manager", "platform_events")
+	_url := fmt.Sprintf("%s/write?u=%s&p=%s&db=%s&rp=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""), infra.GetEnv("DATABASE", "teste"), infra.GetEnv("RETENTION_POLICY", "teste"))
 	payload := strings.NewReader(point)
 	req, _ := http.NewRequest("POST", _url, payload)
 	res, err := http.DefaultClient.Do(req)

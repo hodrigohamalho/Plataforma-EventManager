@@ -2,7 +2,7 @@ package client
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -39,8 +39,8 @@ func doRequest(method, url string, body interface{}) (string, error) {
 		} else {
 			if response, err := ioutil.ReadAll(resp.Body); err != nil {
 				return "", err
-			} else if resp.StatusCode != http.StatusOK {
-				return "", errors.New(string(response))
+			} else if resp.StatusCode >= 300 {
+				return "", fmt.Errorf("Status %s: response: %s", resp.Status, string(response))
 			} else {
 				return string(response), nil
 			}

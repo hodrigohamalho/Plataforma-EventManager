@@ -11,7 +11,7 @@ import (
 //PushEvent to executor
 func PushEvent(event domain.Event) error {
 	url := fmt.Sprintf("%s/event", baseUrl())
-	_, err := client.Post(url, event)
+	_, err := client.Put(url, event)
 	return err
 }
 
