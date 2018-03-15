@@ -46,7 +46,10 @@ func compileEventToLintProtocol(event domain.Event) string {
 	//cpu_load_short,host=server02,region=us-west value=0.55 1422568543702900257
 	s, _ := json.Marshal(event)
 	encoded := base64.StdEncoding.EncodeToString(s)
-	return fmt.Sprintf(`events,name=%s,owner=%s,appOrigin=%s count=1,data="%s"`, event.Name, event.Owner, event.AppOrigin, string(encoded))
+	if event.InstanceID == "" {
+		event.InstanceID = "new_instance"
+	}
+	return fmt.Sprintf(`events,name=%s,instanceId=%s,owner=%s,appOrigin=%s count=1,data="%s"`, event.Name, event.InstanceID, event.Owner, event.AppOrigin, string(encoded))
 }
 
 func getBaseUrl() string {
