@@ -6,6 +6,7 @@ type Event struct {
 	Name         string                 `json:"name,omitempty"`
 	AppOrigin    string                 `json:"appOrigin,omitempty"`
 	Owner        string                 `json:"owner,omitempty"`
+	Scope        string                 `json:"scope,omitempty"`
 	Payload      map[string]interface{} `json:"payload,omitempty"`
 	Reproduction map[string]interface{} `json:"reproduction,omitempty"`
 	Reprocessing map[string]interface{} `json:"reprocessing,omitempty"`
