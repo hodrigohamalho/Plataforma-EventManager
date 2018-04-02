@@ -65,6 +65,24 @@ func main() {
 			})
 		}
 	})
+
+	r.POST("/save", func(c *gin.Context) {
+		log.Info("Saving event on event store")
+		event := new(domain.Event)
+		if err := c.BindJSON(event); err != nil {
+			c.JSON(400, gin.H{
+				"message": err.Error(),
+			})
+		} else if err := actions.SaveEventToStore(*event); err != nil {
+			c.JSON(400, gin.H{
+				"message": err.Error(),
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"message": "OK",
+			})
+		}
+	})
 	log.Info("Listening on: 0.0.0.0:" + port)
 	r.Run(":" + port)
 }
