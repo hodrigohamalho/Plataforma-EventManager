@@ -26,6 +26,16 @@ func Get(url string) (string, error) {
 	}
 }
 
+func GetJSON(url string, obj interface{}) error {
+	if resp, err := http.Get(url); err != nil {
+		return err
+	} else if response, err := ioutil.ReadAll(resp.Body); err != nil {
+		return err
+	} else {
+		return json.Unmarshal(response, obj)
+	}
+}
+
 func doRequest(method, url string, body interface{}) (string, error) {
 	client := http.DefaultClient
 	if j, err := json.Marshal(body); err != nil {
