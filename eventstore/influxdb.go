@@ -17,7 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func init() {
+func Install() {
 	log.Info("Connecting to InfluxDB")
 	go (func() {
 		log.Info("Trying to connect to InfluxDB")
@@ -35,8 +35,9 @@ func init() {
 
 //Push event to Influx
 func influxPush(event domain.Event) error {
-	s := influxWrite(compileEventToLintProtocol(event))
-	if s != "" {
+	if s, err := influxWrite(compileEventToLintProtocol(event)); err != nil {
+		return err
+	} else if s != "" {
 		return errors.New(s)
 	}
 	return nil
@@ -45,11 +46,18 @@ func influxPush(event domain.Event) error {
 func compileEventToLintProtocol(event domain.Event) string {
 	//cpu_load_short,host=server02,region=us-west value=0.55 1422568543702900257
 	s, _ := json.Marshal(event)
+	parts := strings.Split(event.Name, ".")
+	eventClass := parts[len(parts)-1]
+	eventSubclass := "no_subclass"
+	if len(parts) >= 2 {
+		eventSubclass = parts[len(parts)-2]
+	}
 	encoded := base64.StdEncoding.EncodeToString(s)
 	if event.InstanceID == "" {
 		event.InstanceID = "new_instance"
 	}
-	return fmt.Sprintf(`events,name=%s,instanceId=%s,owner=%s,appOrigin=%s count=1,data="%s"`, event.Name, event.InstanceID, event.Owner, event.AppOrigin, string(encoded))
+	cmd := fmt.Sprintf(`events,name=%s,instanceId=%s,class=%s,subclass=%s,owner=%s,appOrigin=%s count=1,data="%s"`, event.Name, event.InstanceID, eventClass, eventSubclass, event.Owner, event.AppOrigin, string(encoded))
+	return cmd
 }
 
 func getBaseUrl() string {
@@ -119,15 +127,18 @@ func executeStatement(stmt string) (string, error) {
 	return string(b), nil
 }
 
-func influxWrite(point string) string {
+func influxWrite(point string) (string, error) {
 	_url := fmt.Sprintf("%s/write?u=%s&p=%s&db=%s&rp=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""), infra.GetEnv("DATABASE", "teste"), infra.GetEnv("RETENTION_POLICY", "teste"))
 	payload := strings.NewReader(point)
 	req, _ := http.NewRequest("POST", _url, payload)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return ""
+		return "", err
+	}
+	if res.StatusCode != 204 {
+		return "", fmt.Errorf("influx refuse to accept entry")
 	}
 	defer res.Body.Close()
 	b, _ := ioutil.ReadAll(res.Body)
-	return string(b)
+	return string(b), nil
 }

@@ -25,22 +25,26 @@
 #   unused-packages = true
 
 
-[prune]
-  go-tests = true
-  unused-packages = true
+[[constraint]]
+  name = "github.com/Jeffail/gabs"
+  version = "1.0.0"
 
 [[constraint]]
   name = "github.com/gin-gonic/gin"
   version = "1.2.0"
 
 [[constraint]]
-  name = "github.com/influxdata/influxdb"
-  version = "1.4.3"
-
-[[constraint]]
-  name = "github.com/Jeffail/gabs"
-  version = "1.0.0"
+  name = "github.com/michaelklishin/rabbit-hole"
+  version = "1.4.0"
 
 [[constraint]]
   name = "github.com/sirupsen/logrus"
-  version = "1.0.4"
+  version = "1.0.5"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/streadway/amqp"
+
+[prune]
+  go-tests = true
+  unused-packages = true

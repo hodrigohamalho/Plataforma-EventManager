@@ -1,14 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"os"
-
-	"github.com/ONSBR/Plataforma-EventManager/eventstore"
-	"github.com/ONSBR/Plataforma-EventManager/infra"
+	"time"
 
 	"github.com/ONSBR/Plataforma-EventManager/actions"
-	"github.com/ONSBR/Plataforma-EventManager/domain"
-	"github.com/gin-gonic/gin"
+	"github.com/ONSBR/Plataforma-EventManager/api"
+	"github.com/ONSBR/Plataforma-EventManager/bus"
+	"github.com/ONSBR/Plataforma-EventManager/eventstore"
+	"github.com/ONSBR/Plataforma-EventManager/lock"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,70 +20,59 @@ func init() {
 	log.SetLevel(log.InfoLevel)
 }
 
+func installInflux() {
+
+}
+
+func installBroker() *bus.Broker {
+	maxRetries := 10
+	delay := 8 * time.Second
+	for {
+		if broker, err := bus.Install(); err != nil {
+			log.Error(err)
+			log.Error(fmt.Sprintf("Trying to reconnect in %d seconds, Remaining Retries %d", delay, maxRetries))
+			maxRetries--
+			if maxRetries < 0 {
+				panic("Cannot connect to RabbitMq, exiting")
+			}
+			time.Sleep(delay)
+		} else {
+			return broker
+		}
+	}
+
+}
+
+func registerActionsToRabbitMq() *bus.Broker {
+	broker := installBroker()
+	actions.SetBroker(broker)
+	broker.RegisterWorker(3, bus.EVENTSTORE_QUEUE, actions.PushEventToEventStore)
+	broker.Listen()
+	return broker
+}
+
 func main() {
+	fmt.Println(logo())
 	log.Info("Starting Event Manager")
-	port := infra.GetEnv("PORT", "8081")
-	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	log.Info("Installing Bus")
+	broker := registerActionsToRabbitMq()
+	log.Info("Starting Mongo")
+	lock.UpMongo()
+	eventstore.Install()
+	log.Info("Starting API")
+	api.BuildAPI(broker)
+}
 
-	r.GET("/count", func(c *gin.Context) {
-		field := c.Query("field")
-		value := c.Query("value")
-		last := c.Query("last")
-		c.JSON(200, gin.H{
-			"total": eventstore.Count(field, value, last),
-		})
-	})
-
-	r.GET("/events", func(c *gin.Context) {
-		field := c.Query("field")
-		value := c.Query("value")
-		last := c.Query("last")
-		c.JSON(200, gin.H{
-			"result": eventstore.Query(field, value, last),
-		})
-	})
-
-	r.PUT("/sendevent", func(c *gin.Context) {
-		log.Info("Pushing event to executor")
-		event := new(domain.Event)
-		if err := c.BindJSON(event); err != nil {
-			c.JSON(400, gin.H{
-				"message": err.Error(),
-			})
-		} else if err := actions.PushEventToExecutor(*event); err != nil {
-			c.JSON(400, gin.H{
-				"message": err.Error(),
-			})
-		} else {
-			c.JSON(200, gin.H{
-				"message": "OK",
-			})
-		}
-	})
-
-	r.POST("/save", func(c *gin.Context) {
-		log.Info("Saving event on event store")
-		event := new(domain.Event)
-		if err := c.BindJSON(event); err != nil {
-			c.JSON(400, gin.H{
-				"message": err.Error(),
-			})
-		} else if err := actions.SaveEventToStore(*event); err != nil {
-			c.JSON(400, gin.H{
-				"message": err.Error(),
-			})
-		} else {
-			c.JSON(200, gin.H{
-				"message": "OK",
-			})
-		}
-	})
-	log.Info("Listening on: 0.0.0.0:" + port)
-	r.Run(":" + port)
+func logo() (logo string) {
+	logo = `
+ 	 ______               _     __  __
+	|  ____|             | |   |  \/  |
+	| |____   _____ _ __ | |_  | \  / | __ _ _ __   __ _  __ _  ___ _ __
+	|  __\ \ / / _ \ '_ \| __| | |\/| |/ _' | '_ \ / _' |/ _' |/ _ \ '__|
+	| |___\ V /  __/ | | | |_  | |  | | (_| | | | | (_| | (_| |  __/ |
+	|______\_/ \___|_| |_|\__| |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|
+	                                                      __/ |
+	                                                     |___/
+	`
+	return
 }
