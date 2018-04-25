@@ -26,7 +26,7 @@ func GetStoreEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
 	return p
 }
 
-var systemEvents = []string{"system.executor.enable.debug", "system.executor.disable.debug", "system.process.persist.error"}
+var systemEvents = []string{"system.executor.enable.debug", "system.executor.disable.debug", "system.process.persist.error", "system.events.reprocessing.request", "system.events.reproduction.request"}
 
 //GetEventFlow returns a processor with events flow applied
 func GetEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
