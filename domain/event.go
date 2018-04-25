@@ -15,6 +15,7 @@ type Event struct {
 	InstanceID    string                 `json:"instanceId,omitempty"`
 	Scope         string                 `json:"scope,omitempty"`
 	ReferenceDate string                 `json:"referenceDate,omitempty"`
+	Output        map[string]interface{} `json:"output,omitempty"`
 	Payload       map[string]interface{} `json:"payload,omitempty"`
 	Reproduction  map[string]interface{} `json:"reproduction,omitempty"`
 	Reprocessing  map[string]interface{} `json:"reprocessing,omitempty"`
