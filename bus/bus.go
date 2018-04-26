@@ -41,6 +41,25 @@ type worker struct {
 	callback func([]byte) error
 }
 
+func GetBroker() *Broker {
+	maxRetries := 10
+	delay := 8 * time.Second
+	for {
+		if broker, err := Install(); err != nil {
+			log.Error(err)
+			log.Error(fmt.Sprintf("Trying to reconnect in %d seconds, Remaining Retries %d", delay, maxRetries))
+			maxRetries--
+			if maxRetries < 0 {
+				panic("Cannot connect to RabbitMq, exiting")
+			}
+			time.Sleep(delay)
+		} else {
+			return broker
+		}
+	}
+
+}
+
 func Install() (*Broker, error) {
 
 	host := infra.GetEnv("RABBITMQ_HOST", "127.0.0.1")

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/ONSBR/Plataforma-EventManager/actions"
 	"github.com/ONSBR/Plataforma-EventManager/api"
@@ -20,31 +19,8 @@ func init() {
 	log.SetLevel(log.InfoLevel)
 }
 
-func installInflux() {
-
-}
-
-func installBroker() *bus.Broker {
-	maxRetries := 10
-	delay := 8 * time.Second
-	for {
-		if broker, err := bus.Install(); err != nil {
-			log.Error(err)
-			log.Error(fmt.Sprintf("Trying to reconnect in %d seconds, Remaining Retries %d", delay, maxRetries))
-			maxRetries--
-			if maxRetries < 0 {
-				panic("Cannot connect to RabbitMq, exiting")
-			}
-			time.Sleep(delay)
-		} else {
-			return broker
-		}
-	}
-
-}
-
 func registerActionsToRabbitMq() *bus.Broker {
-	broker := installBroker()
+	broker := bus.GetBroker()
 	actions.SetBroker(broker)
 	broker.RegisterWorker(3, bus.EVENTSTORE_QUEUE, actions.PushEventToEventStore)
 	broker.Listen()
