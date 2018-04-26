@@ -26,7 +26,7 @@ func GetStoreEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
 	return p
 }
 
-var systemEvents = []string{"system.executor.enable.debug", "system.executor.disable.debug", "system.process.persist.error", "system.events.reprocessing.request", "system.events.reproduction.request"}
+var systemEvents = []string{"system.tracking-object.request", "system.executor.enable.debug", "system.executor.disable.debug", "system.process.persist.error", "system.events.reprocessing.request", "system.events.reproduction.request"}
 
 //GetEventFlow returns a processor with events flow applied
 func GetEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
@@ -48,6 +48,8 @@ func GetEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
 	p.Where("*.done").Execute(handlePersistenceDone).Dispatch("store.executor")
 
 	p.Where("system.process.persist.error").Execute(handlePersistenceDone).Dispatch("store.persist_error")
+
+	p.Where("system.tracking-object.request").Dispatch("track.store")
 
 	p.Where("system.*").Execute(checkSystemEvent).Dispatch("executor.store")
 

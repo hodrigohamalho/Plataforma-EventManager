@@ -23,6 +23,7 @@ const EVENTSTORE_QUEUE = "event.store.queue"
 const EVENT_PERSIST_QUEUE = "event.persist.queue"
 const EVENT_EXCEPTION_QUEUE = "event.exception.queue"
 const EVENT_PERSIST_ERROR_QUEUE = "event.persist.error.queue"
+const EVENT_TRACK_OBJECT_QUEUE = "event.track-object.queue"
 
 const EVENT_EXECUTOR_QUEUE = "event.executor.queue"
 
@@ -74,15 +75,21 @@ func Install() (*Broker, error) {
 	if err != nil {
 		return &Broker{}, err
 	}
-	err = declareQueues(channel, []string{EVENT_EXECUTOR_QUEUE, EVENTSTORE_QUEUE, EVENT_PERSIST_QUEUE, EVENT_EXCEPTION_QUEUE, EVENT_PERSIST_ERROR_QUEUE})
+	err = declareQueues(channel, []string{EVENT_TRACK_OBJECT_QUEUE, EVENT_EXECUTOR_QUEUE, EVENTSTORE_QUEUE, EVENT_PERSIST_QUEUE, EVENT_EXCEPTION_QUEUE, EVENT_PERSIST_ERROR_QUEUE})
 	if err != nil {
 		return &Broker{}, err
 	}
 	//store.executor.persist.exception
+	err = bindQueueToExchange(vhostName, EVENT_TRACK_OBJECT_QUEUE, "#.track.#")
+	if err != nil {
+		return &Broker{}, err
+	}
+
 	err = bindQueueToExchange(vhostName, EVENT_EXECUTOR_QUEUE, "#.executor.#")
 	if err != nil {
 		return &Broker{}, err
 	}
+
 	err = bindQueueToExchange(vhostName, EVENTSTORE_QUEUE, "#.store.#")
 	if err != nil {
 		return &Broker{}, err
