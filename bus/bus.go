@@ -23,6 +23,7 @@ const EVENTSTORE_QUEUE = "event.store.queue"
 const EVENT_PERSIST_QUEUE = "event.persist.queue"
 const EVENT_EXCEPTION_QUEUE = "event.exception.queue"
 const EVENT_PERSIST_ERROR_QUEUE = "event.persist.error.queue"
+const EVENT_PERSIST_REQUEST_QUEUE = "event.persist.request.queue"
 
 const EVENT_EXECUTOR_QUEUE = "event.executor.queue"
 
@@ -93,7 +94,7 @@ func Install() (*Broker, error) {
 	if err != nil {
 		return &Broker{}, err
 	}
-	err = declareQueues(channel, []string{EVENT_EXECUTOR_QUEUE, EVENTSTORE_QUEUE, EVENT_PERSIST_QUEUE, EVENT_EXCEPTION_QUEUE, EVENT_PERSIST_ERROR_QUEUE})
+	err = declareQueues(channel, []string{EVENT_PERSIST_REQUEST_QUEUE, EVENT_EXECUTOR_QUEUE, EVENTSTORE_QUEUE, EVENT_PERSIST_QUEUE, EVENT_EXCEPTION_QUEUE, EVENT_PERSIST_ERROR_QUEUE})
 	if err != nil {
 		return &Broker{}, err
 	}
@@ -102,14 +103,22 @@ func Install() (*Broker, error) {
 	if err != nil {
 		return &Broker{}, err
 	}
+
+	err = bindQueueToExchange(vhostName, EVENT_PERSIST_REQUEST_QUEUE, "#.inexecution.#")
+	if err != nil {
+		return &Broker{}, err
+	}
+
 	err = bindQueueToExchange(vhostName, EVENTSTORE_QUEUE, "#.store.#")
 	if err != nil {
 		return &Broker{}, err
 	}
+
 	err = bindQueueToExchange(vhostName, EVENT_PERSIST_QUEUE, "#.persist.#")
 	if err != nil {
 		return &Broker{}, err
 	}
+
 	err = bindQueueToExchange(vhostName, EVENT_EXCEPTION_QUEUE, "#.exception.#")
 	if err != nil {
 		return &Broker{}, err
@@ -119,6 +128,7 @@ func Install() (*Broker, error) {
 	if err != nil {
 		return &Broker{}, err
 	}
+
 	broker := Broker{
 		mux:        new(sync.Mutex),
 		connection: connection,
@@ -319,6 +329,22 @@ func (broker *Broker) Get(queue string, action func(*domain.Event) error) error 
 
 	}
 	return nil
+}
+
+func (broker *Broker) Pop(queue string) (event *domain.Event, err error) {
+	err = broker.Get(queue, func(evt *domain.Event) error {
+		event = evt
+		return nil
+	})
+	return
+}
+
+func (broker *Broker) First(queue string) (event *domain.Event, err error) {
+	err = broker.Get(queue, func(evt *domain.Event) error {
+		event = evt
+		return fmt.Errorf("ignore")
+	})
+	return
 }
 
 func (broker *Broker) Swap(fromQueue, routingKey string) error {

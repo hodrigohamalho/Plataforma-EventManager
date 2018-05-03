@@ -39,7 +39,7 @@ func GetEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
 
 	p.CutOff(eventNotRegistered)
 
-	p.Where("*.persist.request").Execute(handlePersistEvent).Dispatch("persist")
+	p.Where("*.persist.request").Execute(handlePersistEvent).Dispatch("persist.inexecution")
 
 	p.Where("*.persist.unlock").Execute(handleUnlock).Dispatch("store")
 
@@ -70,7 +70,12 @@ func eventNotRegistered(event *domain.Event) error {
 
 func swapPersistEventToExecutorQueue() error {
 	log.Info("Swapping persist event to executor queue")
-	return broker.Swap(bus.EVENT_PERSIST_QUEUE, "executor.store")
+	err := broker.Swap(bus.EVENT_PERSIST_QUEUE, "executor.store")
+	if err != nil {
+		return err
+	}
+	_, err = broker.Pop(bus.EVENT_PERSIST_REQUEST_QUEUE)
+	return err
 }
 
 func handlePersistenceDone(event *domain.Event) error {
@@ -80,6 +85,7 @@ func handlePersistenceDone(event *domain.Event) error {
 func handlePersistEvent(event *domain.Event) error {
 	eventNameParts := strings.Split(event.Name, ".")
 	solutionID := eventNameParts[0]
+
 	if locked, err := lock.SolutionIsLocked(solutionID); err != nil {
 		return infra.NewComponentException(err.Error())
 	} else if locked {
@@ -88,11 +94,9 @@ func handlePersistEvent(event *domain.Event) error {
 		log.Info("Locking solution", event)
 		return lock.Lock(solutionID, event)
 	}
-	err := broker.Get(bus.EVENT_PERSIST_QUEUE, func(queuedEvent *domain.Event) error {
-		return fmt.Errorf("ignore")
-	})
+	_, err := broker.First(bus.EVENT_PERSIST_REQUEST_QUEUE)
 	if err != nil && err.Error() == infra.PersistEventQueueEmpty {
-		broker.Publish("persist.executor.store", event.ToCeleryMessage())
+		broker.Publish("executor.store.inexecution", event.ToCeleryMessage())
 		return err
 	}
 	return nil

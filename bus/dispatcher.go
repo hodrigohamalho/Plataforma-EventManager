@@ -11,4 +11,8 @@ type Dispatcher interface {
 	Get(queue string, action func(*domain.Event) error) error
 
 	Swap(queueFrom string, routingKey string) error
+
+	Pop(queue string) (*domain.Event, error)
+
+	First(queue string) (*domain.Event, error)
 }
