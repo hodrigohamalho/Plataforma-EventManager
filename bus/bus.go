@@ -24,6 +24,7 @@ const EVENT_PERSIST_QUEUE = "event.persist.queue"
 const EVENT_EXCEPTION_QUEUE = "event.exception.queue"
 const EVENT_PERSIST_ERROR_QUEUE = "event.persist.error.queue"
 const EVENT_PERSIST_REQUEST_QUEUE = "event.persist.request.queue"
+const EVENT_PROCESS_FINISHED_QUEUE = "event.process.finished.queue"
 
 const EVENT_EXECUTOR_QUEUE = "event.executor.queue"
 
@@ -94,11 +95,16 @@ func Install() (*Broker, error) {
 	if err != nil {
 		return &Broker{}, err
 	}
-	err = declareQueues(channel, []string{EVENT_PERSIST_REQUEST_QUEUE, EVENT_EXECUTOR_QUEUE, EVENTSTORE_QUEUE, EVENT_PERSIST_QUEUE, EVENT_EXCEPTION_QUEUE, EVENT_PERSIST_ERROR_QUEUE})
+	err = declareQueues(channel, []string{EVENT_PROCESS_FINISHED_QUEUE, EVENT_PERSIST_REQUEST_QUEUE, EVENT_EXECUTOR_QUEUE, EVENTSTORE_QUEUE, EVENT_PERSIST_QUEUE, EVENT_EXCEPTION_QUEUE, EVENT_PERSIST_ERROR_QUEUE})
 	if err != nil {
 		return &Broker{}, err
 	}
-	//store.executor.persist.exception
+
+	err = bindQueueToExchange(vhostName, EVENT_PROCESS_FINISHED_QUEUE, "#.finished.#")
+	if err != nil {
+		return &Broker{}, err
+	}
+
 	err = bindQueueToExchange(vhostName, EVENT_EXECUTOR_QUEUE, "#.executor.#")
 	if err != nil {
 		return &Broker{}, err
@@ -395,11 +401,15 @@ func (broker *Broker) runWorkers() error {
 				false,     // no-wait
 				nil,       // args
 			)
-			go func() {
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			go (func(w worker, msgs <-chan amqp.Delivery) {
 				for event := range msgs {
-					if err := wk.callback(event.Body); err != nil {
+					if err := w.callback(event.Body); err != nil {
 						log.Error(err)
-						if err := broker.PublishIn(EXCHANGE_NAME+".error", errorQueue(wk.q_name), event.Body); err != nil {
+						if err := broker.PublishIn(EXCHANGE_NAME+".error", errorQueue(w.q_name), event.Body); err != nil {
 							//TODO what is the best approach?
 							log.Error(err)
 							event.Nack(false, true)
@@ -412,7 +422,7 @@ func (broker *Broker) runWorkers() error {
 						event.Ack(false)
 					}
 				}
-			}()
+			})(wk, msgs)
 		}
 	}
 

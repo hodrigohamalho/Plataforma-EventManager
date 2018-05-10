@@ -43,9 +43,9 @@ func GetEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
 
 	p.Where("*.persist.unlock").Execute(handleUnlock).Dispatch("store")
 
-	p.Where("*.exception").Dispatch("exception.store")
+	p.Where("*.exception").Dispatch("exception.store.executor")
 
-	p.Where("*.done").Execute(handlePersistenceDone).Dispatch("store.executor")
+	p.Where("*.done").Execute(handlePersistenceDone).Dispatch("store.executor.finished")
 
 	p.Where("system.process.persist.error").Execute(handlePersistenceDone).Dispatch("store.persist_error")
 

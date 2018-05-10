@@ -22,7 +22,9 @@ func init() {
 func registerActionsToRabbitMq() *bus.Broker {
 	broker := bus.GetBroker()
 	actions.SetBroker(broker)
-	broker.RegisterWorker(3, bus.EVENTSTORE_QUEUE, actions.PushEventToEventStore)
+	broker.RegisterWorker(1, bus.EVENTSTORE_QUEUE, actions.PushEventToEventStore)
+	broker.RegisterWorker(1, bus.EVENT_PROCESS_FINISHED_QUEUE, actions.FinalizeProcess)
+	broker.RegisterWorker(1, bus.EVENT_EXCEPTION_QUEUE, actions.SetFailureProcess)
 	broker.Listen()
 	return broker
 }

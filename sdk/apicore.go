@@ -44,3 +44,20 @@ func EventHasBindings(eventName string) (bool, error) {
 	}
 	return true, nil
 }
+
+//UpdateProcessInstance updates process instance status on apicore
+func UpdateProcessInstance(instanceID, status string) error {
+
+	procInstance := NewProcessInstance()
+	procInstance.ID = instanceID
+	procInstance.Status = status
+	procInstance.Metadata.ChangeTrack = "update"
+
+	url := fmt.Sprintf("%s/persist", getUrl())
+	arr := make([]*ProcessInstance, 1, 1)
+	arr[0] = procInstance
+	if _, err := client.Post(url, arr); err != nil {
+		return err
+	}
+	return nil
+}
