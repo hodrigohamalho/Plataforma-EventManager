@@ -63,7 +63,8 @@ func (p *Processor) Else(routingKey string) *Processor {
 func (p *Processor) Push(event *domain.Event) error {
 	p.currentPattern = ""
 	suitable := false
-	log.Info(fmt.Sprintf("Received event %s", event.Name))
+	log.Info(fmt.Sprintf("Received event %s Scope %s Branch %s", event.Name, event.Scope, event.Branch))
+
 	for _, cutOffRule := range p.cutOfRules {
 		if err := cutOffRule(event); err != nil {
 			log.Error(fmt.Sprintf("Cutting off event %s with error %s", event.Name, err.Error()))
