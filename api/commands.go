@@ -14,7 +14,7 @@ func registerCommandsApi(r *gin.Engine, dispatcher bus.Dispatcher) {
 	storeEventFlow := flow.GetStoreEventFlow(dispatcher)
 	log.Info("Register route PUT /sendevent")
 	r.PUT("/sendevent", func(c *gin.Context) {
-		event := new(domain.Event)
+		event := domain.NewEvent()
 		if err := c.BindJSON(event); err != nil {
 			c.JSON(400, gin.H{
 				"message": err.Error(),

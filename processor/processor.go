@@ -48,7 +48,16 @@ func (p *Processor) Execute(action func(event *domain.Event) error) *Processor {
 
 func (p *Processor) Dispatch(routingKey string) *Processor {
 	p.executionFlow[p.currentPattern] = append(p.executionFlow[p.currentPattern], func(event *domain.Event) error {
-		return p.dispatcher.Publish(routingKey, event.ToCeleryMessage())
+		err := p.dispatcher.Publish(routingKey, event.ToCeleryMessage())
+		binding := event.Bindings[0]
+		if binding.Reprocessable && event.HasCommands() {
+			for _, command := range event.Commands {
+				if err = p.dispatcher.Publish(routingKey, command.ToCeleryMessage()); err != nil {
+					return infra.NewComponentException(err.Error())
+				}
+			}
+		}
+		return err
 	})
 	return p
 }

@@ -30,17 +30,22 @@ func GetSolutionIDByEventName(eventName string) (string, error) {
 	return arr[0].SystemID, nil
 }
 
+//EventBindings any operation that have inbound or outbound event binding with same name
+func EventBindings(eventName string) ([]*domain.Operation, error) {
+	url := fmt.Sprintf("%s/operation?filter=bindingEvent&event=%s", getUrl(), eventName)
+	arr := make([]*domain.Operation, 0, 0)
+	err := client.GetJSON(url, &arr)
+	return arr, err
+}
+
 //EventHasBindings verify if exist any operation that have inbound or outbound event binding with same name
 func EventHasBindings(eventName string) (bool, error) {
-	url := fmt.Sprintf("%s/operation?filter=bindingEvent&event=%s", getUrl(), eventName)
-
-	arr := make([]*domain.Operation, 0, 0)
-
-	if err := client.GetJSON(url, &arr); err != nil {
-		return false, err
-	}
+	arr, err := EventBindings(eventName)
 	if len(arr) == 0 {
 		return false, infra.NewSubscriberNotFoundException(fmt.Sprintf("Event %s has no subscribers", eventName))
+	}
+	if err != nil {
+		return false, infra.NewComponentException(err.Error())
 	}
 	return true, nil
 }
@@ -60,4 +65,13 @@ func UpdateProcessInstance(instanceID, status string) error {
 		return err
 	}
 	return nil
+}
+
+//GetOpenBranchesBySystem returns all branches open on apicore
+func GetOpenBranchesBySystem(systemID string) ([]Branch, error) {
+	url := fmt.Sprintf("%s/branch?filter=bySystemIdAndStatus&systemId=%s&status=open", getUrl(), systemID)
+	if _, err := client.Get(url); err != nil {
+		return nil, infra.NewArgumentException(err.Error())
+	}
+	return nil, nil
 }

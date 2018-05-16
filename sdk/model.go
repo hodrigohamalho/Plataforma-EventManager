@@ -9,4 +9,5 @@ type Metadata struct {
 
 type Model struct {
 	Metadata Metadata `json:"_metadata"`
+	ID       string   `json:"id"`
 }

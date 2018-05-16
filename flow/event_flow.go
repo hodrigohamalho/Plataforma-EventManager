@@ -51,7 +51,7 @@ func GetEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
 
 	p.Where("system.*").Execute(checkSystemEvent).Dispatch("executor.store")
 
-	p.Where("*").Execute(checkPlatformAvailability).Dispatch("executor.store")
+	p.Where("*").Execute(checkPlatformAvailability).Execute(split).Dispatch("executor.store")
 
 	return p
 }
@@ -60,12 +60,15 @@ func GetEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
 Event Handlers
 */
 
-func eventNotRegistered(event *domain.Event) error {
+func eventNotRegistered(event *domain.Event) (err error) {
 	if isSystemEvent(event) {
 		return nil
 	}
-	_, err := sdk.EventHasBindings(event.Name)
-	return err
+	event.Bindings, err = sdk.EventBindings(event.Name)
+	if len(event.Bindings) == 0 {
+		err = infra.NewSubscriberNotFoundException(fmt.Sprintf("Event %s has no subscribers", event.Name))
+	}
+	return
 }
 
 func swapPersistEventToExecutorQueue() error {
@@ -136,5 +139,20 @@ func checkPlatformAvailability(event *domain.Event) error {
 	} else {
 		return err
 	}
+	return nil
+}
+
+func split(event *domain.Event) error {
+	systemID := event.Bindings[0].SystemID
+	if branches, err := sdk.GetOpenBranchesBySystem(systemID); err != nil {
+		return err
+	} else {
+		for _, branch := range branches {
+			command := event.GetCommand()
+			command.Branch = branch.Name
+			event.AppendCommand(command)
+		}
+	}
+
 	return nil
 }
