@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/ONSBR/Plataforma-EventManager/client"
@@ -70,8 +71,14 @@ func UpdateProcessInstance(instanceID, status string) error {
 //GetOpenBranchesBySystem returns all branches open on apicore
 func GetOpenBranchesBySystem(systemID string) ([]Branch, error) {
 	url := fmt.Sprintf("%s/branch?filter=bySystemIdAndStatus&systemId=%s&status=open", getUrl(), systemID)
-	if _, err := client.Get(url); err != nil {
+	if response, err := client.Get(url); err != nil {
 		return nil, infra.NewArgumentException(err.Error())
+	} else {
+		branches := make([]Branch, 0, 0)
+		if err := json.Unmarshal([]byte(response), &branches); err != nil {
+			return nil, infra.NewComponentException(err.Error())
+		}
+		return branches, err
 	}
-	return nil, nil
+
 }

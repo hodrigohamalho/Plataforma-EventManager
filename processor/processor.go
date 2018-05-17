@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ONSBR/Plataforma-EventManager/infra"
+	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/ONSBR/Plataforma-EventManager/bus"
@@ -49,11 +50,16 @@ func (p *Processor) Execute(action func(event *domain.Event) error) *Processor {
 func (p *Processor) Dispatch(routingKey string) *Processor {
 	p.executionFlow[p.currentPattern] = append(p.executionFlow[p.currentPattern], func(event *domain.Event) error {
 		err := p.dispatcher.Publish(routingKey, event.ToCeleryMessage())
-		binding := event.Bindings[0]
-		if binding.Reprocessable && event.HasCommands() {
-			for _, command := range event.Commands {
-				if err = p.dispatcher.Publish(routingKey, command.ToCeleryMessage()); err != nil {
-					return infra.NewComponentException(err.Error())
+		if len(event.Bindings) > 0 {
+			binding := event.Bindings[0]
+			if binding.Reprocessable && event.HasCommands() {
+				log.Info("Process is reprocessable")
+				for _, command := range event.Commands {
+					log.Info("dispatching splited event")
+					log.Info(fmt.Sprintf("Event %s on Branch %s", command.Name, command.Branch))
+					if err = p.dispatcher.Publish(routingKey, command.ToCeleryMessage()); err != nil {
+						return infra.NewComponentException(err.Error())
+					}
 				}
 			}
 		}
@@ -69,18 +75,35 @@ func (p *Processor) Else(routingKey string) *Processor {
 	return p
 }
 
-func (p *Processor) Push(event *domain.Event) error {
+func (p *Processor) Push(event *domain.Event) (err error) {
 	p.currentPattern = ""
 	suitable := false
+	if event.Branch == "" {
+		event.Branch = "master"
+	}
+	if event.Scope == "" {
+		event.Scope = "execution"
+	}
 	log.Info(fmt.Sprintf("Received event %s Scope %s Branch %s", event.Name, event.Scope, event.Branch))
-
+	event.Bindings, err = sdk.EventBindings(event.Name)
 	for _, cutOffRule := range p.cutOfRules {
-		if err := cutOffRule(event); err != nil {
+		if err = cutOffRule(event); err != nil {
 			log.Error(fmt.Sprintf("Cutting off event %s with error %s", event.Name, err.Error()))
-			return err
+			return
 		}
 	}
-
+	if len(event.Bindings) > 0 {
+		systemID := event.Bindings[0].SystemID
+		if branches, err := sdk.GetOpenBranchesBySystem(systemID); err != nil {
+			return err
+		} else {
+			for _, branch := range branches {
+				command := event.GetCommand()
+				command.Branch = branch.Name
+				event.Commands = append(event.Commands, command)
+			}
+		}
+	}
 	for _, k := range p.keyOrder {
 		actions := p.executionFlow[k]
 		if matched, err := regexp.MatchString(convertPattern(k), event.Name); err != nil {
