@@ -20,7 +20,6 @@ func PushEventToExecutor(event domain.Event) error {
 	}
 	/*
 		go executor.PushEvent(event)
-		log.Info("Saving event to EventStore")
 		return eventstore.Push(event)*/
 	return broker.Publish("#", event)
 }

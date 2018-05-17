@@ -71,7 +71,7 @@ func eventNotRegistered(event *domain.Event) (err error) {
 }
 
 func swapPersistEventToExecutorQueue() error {
-	log.Info("Swapping persist event to executor queue")
+	log.Debug("Swapping persist event to executor queue")
 	err := broker.Swap(bus.EVENT_PERSIST_QUEUE, "executor.store")
 	if err != nil {
 		return err
