@@ -50,7 +50,7 @@ func (p *Processor) Execute(action func(event *domain.Event) error) *Processor {
 func (p *Processor) Dispatch(routingKey string) *Processor {
 	p.executionFlow[p.currentPattern] = append(p.executionFlow[p.currentPattern], func(event *domain.Event) error {
 		err := p.dispatcher.Publish(routingKey, event.ToCeleryMessage())
-		if len(event.Bindings) > 0 {
+		if len(event.Bindings) > 0 && event.Scope == "execution" {
 			binding := event.Bindings[0]
 			if binding.Reprocessable && event.HasCommands() {
 				log.Info("Process is reprocessable")
