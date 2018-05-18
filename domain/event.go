@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"strings"
 	"time"
 
 	"github.com/ONSBR/Plataforma-EventManager/infra"
@@ -41,6 +42,10 @@ func (e *Event) IsValid() error {
 		return infra.NewArgumentException(err.Error())
 	}
 	return nil
+}
+
+func (e *Event) IsEndingEvent() bool {
+	return strings.HasSuffix(e.Name, ".done") || strings.HasSuffix(e.Name, ".error") || strings.HasSuffix(e.Name, ".exception")
 }
 
 func (e *Event) GetReferenceDate() (time.Time, error) {

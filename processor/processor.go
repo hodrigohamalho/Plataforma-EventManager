@@ -50,13 +50,13 @@ func (p *Processor) Execute(action func(event *domain.Event) error) *Processor {
 func (p *Processor) Dispatch(routingKey string) *Processor {
 	p.executionFlow[p.currentPattern] = append(p.executionFlow[p.currentPattern], func(event *domain.Event) error {
 		err := p.dispatcher.Publish(routingKey, event.ToCeleryMessage())
-		if len(event.Bindings) > 0 && event.Scope != "reproduction" {
+		if len(event.Bindings) > 0 && !event.IsEndingEvent() {
 			binding := event.Bindings[0]
 			if binding.Reprocessable && event.HasCommands() {
 				log.Debug("Process is reprocessable")
+				log.Debug("Dispatching splited event")
 				for _, command := range event.Commands {
-					log.Debug("dispatching splited event")
-					log.Debug(fmt.Sprintf("Event %s on Branch %s", command.Name, command.Branch))
+					log.Debug(fmt.Sprintf("   ---> Event %s on Branch %s", command.Name, command.Branch))
 					if err = p.dispatcher.Publish(routingKey, command.ToCeleryMessage()); err != nil {
 						return infra.NewComponentException(err.Error())
 					}
