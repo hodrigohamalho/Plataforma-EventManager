@@ -2,8 +2,6 @@ package infra
 
 import (
 	"fmt"
-
-	log "github.com/sirupsen/logrus"
 )
 
 //var mapErrorTagHTTPStatus = map[string]int{PlatformLocked: 401, PlatformComponentError: 500, SystemError: 500, InvalidArguments: 400, PersistEventQueueEmpty: 201, SubscriberNotFound: 404}
@@ -34,7 +32,7 @@ type Exception struct {
 //NewException creates a new Exception Object
 func NewException(tag, message string) *Exception {
 	ex := Exception{Tag: tag, Message: message}
-	log.Error(fmt.Sprintf("%s %s", tag, message))
+	//log.Error(fmt.Sprintf("%s %s", tag, message))
 	return &ex
 }
 

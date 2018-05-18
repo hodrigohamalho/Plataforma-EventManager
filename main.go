@@ -16,7 +16,7 @@ func init() {
 	os.Setenv("DATABASE", "event_manager")
 	os.Setenv("RETENTION_POLICY", "platform_events")
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
+	log.SetLevel(log.DebugLevel)
 }
 
 func registerActionsToRabbitMq() *bus.Broker {
