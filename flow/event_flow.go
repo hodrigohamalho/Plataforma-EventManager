@@ -114,7 +114,10 @@ func handleReprocessing(event *domain.Event) error {
 		sdk.ReplaceDocument("reprocessing", map[string]string{"id": reprocessingOrigin.ID}, reprocessing)
 		if doneReprocessing {
 			log.Info(fmt.Sprintf("Reprocessing %s already done", reprocessingOrigin.ID))
+			event.Branch = "master"
 			return nil
+		} else {
+			log.Info(fmt.Sprintf("Suppressing event %s in scope %s in branch %s", event.Name, event.Scope, event.Branch))
 		}
 	}
 	return infra.NewRunningReprocessingException("reprocessing still running")
