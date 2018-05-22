@@ -3,7 +3,7 @@ package executor
 import (
 	"fmt"
 
-	"github.com/ONSBR/Plataforma-EventManager/client"
+	"github.com/ONSBR/Plataforma-EventManager/clients/http"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/infra"
 )
@@ -11,7 +11,7 @@ import (
 //PushEvent to executor
 func PushEvent(event domain.Event) error {
 	url := fmt.Sprintf("%s/event", baseUrl())
-	_, err := client.Put(url, event)
+	_, err := http.Put(url, event)
 	return err
 }
 

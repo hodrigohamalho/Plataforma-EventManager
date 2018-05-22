@@ -106,36 +106,16 @@ func (p *Processor) Else(routingKey string) *Processor {
 func (p *Processor) Push(event *domain.Event) (err error) {
 	p.currentPattern = ""
 	suitable := false
-	if event.Branch == "" {
-		event.Branch = "master"
-	}
-	if event.Scope == "" {
-		event.Scope = "execution"
-	}
+	event.ApplyDefaultFields()
+	buildCommands(event)
 	log.Info(fmt.Sprintf("Received event %s Scope %s Branch %s", event.Name, event.Scope, event.Branch))
-	event.Bindings, err = sdk.EventBindings(event.Name)
 	for _, cutOffRule := range p.cutOfRules {
 		if err = cutOffRule(event); err != nil {
 			log.Error(fmt.Sprintf("Cutting off event %s with error %s", event.Name, err.Error()))
 			return
 		}
 	}
-	if len(event.Bindings) > 0 {
-		systemID := event.Bindings[0].SystemID
-		if branches, err := sdk.GetOpenBranchesBySystem(systemID); err != nil {
-			return err
-		} else {
-			for _, branch := range branches {
-				command := event.GetCommand()
-				command.Branch = branch.Name
-				event.Commands = append(event.Commands, command)
-			}
-		}
-	}
-	//Por padrao todo evento vai para o event store
-	if err = p.dispatcher.Publish("store", event.ToCeleryMessage()); err != nil {
-		return infra.NewComponentException(err.Error())
-	}
+	publishEventToStore(p.dispatcher, event)
 	for _, k := range p.keyOrder {
 		actions := p.executionFlow[k]
 		if matched, err := regexp.MatchString(convertPattern(k), event.Name); err != nil {
@@ -164,6 +144,37 @@ func (p *Processor) Push(event *domain.Event) (err error) {
 		return infra.NewArgumentException(fmt.Sprintf("Event didn't match any clause"))
 	}
 	return nil
+}
+
+func publishEventToStore(dispatcher bus.Dispatcher, event *domain.Event) error {
+	if err := dispatcher.Publish("store", event.ToCeleryMessage()); err != nil {
+		for _, command := range event.Commands {
+			err = dispatcher.Publish("store", command.ToCeleryMessage())
+			if err != nil {
+				return infra.NewComponentException(err.Error())
+			}
+		}
+		return infra.NewComponentException(err.Error())
+	}
+	return nil
+}
+
+//BuildCommands builds command chain on event
+func buildCommands(e *domain.Event) (err error) {
+	e.Bindings, err = sdk.EventBindings(e.Name)
+	if len(e.Bindings) > 0 {
+		systemID := e.Bindings[0].SystemID
+		if branches, err := sdk.GetOpenBranchesBySystem(systemID); err != nil {
+			return err
+		} else {
+			for _, branch := range branches {
+				command := e.GetCommand()
+				command.Branch = branch.Name
+				e.Commands = append(e.Commands, command)
+			}
+		}
+	}
+	return
 }
 
 func convertPattern(s string) string {

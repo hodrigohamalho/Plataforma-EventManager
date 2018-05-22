@@ -19,9 +19,6 @@ func registerCommandsApi(r *gin.Engine, dispatcher bus.Dispatcher) {
 			c.JSON(400, gin.H{
 				"message": err.Error(),
 			})
-		} else if err := event.IsValid(); err != nil {
-			ex := err.(*infra.Exception)
-			c.JSON(ex.HTTPStatus(), ex)
 		} else if err := fullEventFlow.Push(event); err != nil {
 			ex := err.(*infra.Exception)
 			c.JSON(ex.HTTPStatus(), ex)
@@ -38,9 +35,6 @@ func registerCommandsApi(r *gin.Engine, dispatcher bus.Dispatcher) {
 			c.JSON(400, gin.H{
 				"message": err.Error(),
 			})
-		} else if err := event.IsValid(); err != nil {
-			ex := err.(*infra.Exception)
-			c.JSON(ex.HTTPStatus(), ex)
 		} else if err := storeEventFlow.Push(event); err != nil {
 			ex := err.(*infra.Exception)
 			c.JSON(ex.HTTPStatus(), ex)

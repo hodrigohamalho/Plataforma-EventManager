@@ -9,8 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-//FinalizeProcess on ApiCore
-func FinalizeProcess(payload []byte) (err error) {
+//FinalizeProcessInstance on ApiCore
+func FinalizeProcessInstance(payload []byte) (err error) {
 	celeryMessage := new(domain.CeleryMessage)
 	err = json.Unmarshal(payload, celeryMessage)
 	if len(celeryMessage.Args) == 0 {

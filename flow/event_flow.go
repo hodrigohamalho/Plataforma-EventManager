@@ -25,7 +25,7 @@ func GetStoreEventFlow(dispatcher bus.Dispatcher) *processor.Processor {
 
 	p.Where("system.*").Execute(checkSystemEvent).Dispatch("executor.store")
 
-	p.Where("*").Execute(checkPlatformAvailability).Dispatch("store")
+	p.Where("*").Dispatch("store")
 	return p
 }
 

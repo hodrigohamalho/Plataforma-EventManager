@@ -1,4 +1,4 @@
-package client
+package http
 
 import (
 	"encoding/json"
@@ -8,14 +8,17 @@ import (
 	"strings"
 )
 
+//Put make a PUT request
 func Put(url string, body interface{}) (string, error) {
 	return doRequest("PUT", url, body)
 }
 
+//Post make a POST request
 func Post(url string, body interface{}) (string, error) {
 	return doRequest("POST", url, body)
 }
 
+//Get make a GET request
 func Get(url string) (string, error) {
 	if resp, err := http.Get(url); err != nil {
 		return "", err
@@ -26,6 +29,7 @@ func Get(url string) (string, error) {
 	}
 }
 
+//GetJSON make a GET request and unmarshal response to JSON
 func GetJSON(url string, obj interface{}) error {
 	if resp, err := http.Get(url); err != nil {
 		return err

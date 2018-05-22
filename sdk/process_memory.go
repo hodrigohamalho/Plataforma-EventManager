@@ -3,7 +3,7 @@ package sdk
 import (
 	"fmt"
 
-	"github.com/ONSBR/Plataforma-EventManager/client"
+	"github.com/ONSBR/Plataforma-EventManager/clients/http"
 	"github.com/ONSBR/Plataforma-EventManager/infra"
 )
 
@@ -17,7 +17,7 @@ func getProcessMemoryUrl() string {
 //SaveDocument to process memory
 func SaveDocument(collection string, data interface{}) (err error) {
 	url := fmt.Sprintf("%s/%s?app_origin=event_manager", getProcessMemoryUrl(), collection)
-	_, err = client.Post(url, data)
+	_, err = http.Post(url, data)
 	return
 }
 
@@ -28,7 +28,7 @@ func GetDocument(collection string, query map[string]string) (string, error) {
 		queryString += fmt.Sprintf("%s=%s&", k, v)
 	}
 	url := fmt.Sprintf("%s/%s?%sapp_origin=event_manager", getProcessMemoryUrl(), collection, queryString)
-	return client.Get(url)
+	return http.Get(url)
 }
 
 //ReplaceDocument update full document based on query and collection
@@ -38,6 +38,6 @@ func ReplaceDocument(collection string, query map[string]string, document interf
 		queryString += fmt.Sprintf("%s=%s&", k, v)
 	}
 	url := fmt.Sprintf("%s/%s?%sapp_origin=event_manager", getProcessMemoryUrl(), collection, queryString)
-	_, err := client.Put(url, document)
+	_, err := http.Put(url, document)
 	return err
 }
