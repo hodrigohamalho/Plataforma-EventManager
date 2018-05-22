@@ -18,18 +18,28 @@ var rmqc *rab.Client
 var connection *amqp.Connection
 
 const vhostName = "plataforma_v1.0"
-const EXCHANGE_NAME = "events.publish"
-const EVENTSTORE_QUEUE = "event.store.queue"
-const EVENT_PERSIST_QUEUE = "event.persist.queue"
-const EVENT_EXCEPTION_QUEUE = "event.exception.queue"
-const EVENT_PERSIST_ERROR_QUEUE = "event.persist.error.queue"
-const EVENT_PERSIST_REQUEST_QUEUE = "event.persist.request.queue"
-const EVENT_PROCESS_FINISHED_QUEUE = "event.process.finished.queue"
+const exchangeName = "events.publish"
 
-const EVENT_EXECUTOR_QUEUE = "event.executor.queue"
+//EventstoreQueue is a queue that will receive all events to be stored in influxdb
+const EventstoreQueue = "event.store.queue"
 
-//const EVENT_EXECUTOR_QUEUE = "celery"
+//EventPersistQueue is a queue that will receive all persist event
+const EventPersistQueue = "event.persist.queue"
 
+//EventExceptionQueue is a queue that will receive all exception event
+const EventExceptionQueue = "event.exception.queue"
+
+const eventPersistErrorQueue = "event.persist.error.queue"
+
+//EventPersistRequestQueue is a queue that will receive all persist event
+const EventPersistRequestQueue = "event.persist.request.queue"
+
+//EventProcessFinishedQueue is a queue that will receive all persist event
+const EventProcessFinishedQueue = "event.process.finished.queue"
+
+const eventExecutorQueue = "event.executor.queue"
+
+//Broker is a struct that implements the RabbitMq API
 type Broker struct {
 	mux        *sync.Mutex
 	connection *amqp.Connection
@@ -39,10 +49,11 @@ type Broker struct {
 
 type worker struct {
 	qtd      int
-	q_name   string
+	qname    string
 	callback func([]byte) error
 }
 
+//GetBroker returns a new broker
 func GetBroker() *Broker {
 	maxRetries := 10
 	delay := 8 * time.Second
@@ -62,6 +73,7 @@ func GetBroker() *Broker {
 
 }
 
+//Install config rabbitmq broker
 func Install() (*Broker, error) {
 
 	host := infra.GetEnv("RABBITMQ_HOST", "127.0.0.1")
@@ -76,7 +88,7 @@ func Install() (*Broker, error) {
 		return &Broker{}, err
 	}
 
-	if err := setTopicPermission(host, apiPort, user, password, vhostName, EXCHANGE_NAME); err != nil {
+	if err := setTopicPermission(host, apiPort, user, password, vhostName, exchangeName); err != nil {
 		return &Broker{}, err
 	}
 
@@ -91,46 +103,46 @@ func Install() (*Broker, error) {
 		return &Broker{}, fmt.Errorf("Channel: %s", err)
 	}
 
-	err = declareExchange(channel, EXCHANGE_NAME, "topic")
+	err = declareExchange(channel, exchangeName, "topic")
 	if err != nil {
 		return &Broker{}, err
 	}
-	err = declareQueues(channel, []string{EVENT_PROCESS_FINISHED_QUEUE, EVENT_PERSIST_REQUEST_QUEUE, EVENT_EXECUTOR_QUEUE, EVENTSTORE_QUEUE, EVENT_PERSIST_QUEUE, EVENT_EXCEPTION_QUEUE, EVENT_PERSIST_ERROR_QUEUE})
-	if err != nil {
-		return &Broker{}, err
-	}
-
-	err = bindQueueToExchange(vhostName, EVENT_PROCESS_FINISHED_QUEUE, "#.finished.#")
+	err = declareQueues(channel, []string{EventProcessFinishedQueue, EventPersistRequestQueue, eventExecutorQueue, EventstoreQueue, EventPersistQueue, EventExceptionQueue, eventPersistErrorQueue})
 	if err != nil {
 		return &Broker{}, err
 	}
 
-	err = bindQueueToExchange(vhostName, EVENT_EXECUTOR_QUEUE, "#.executor.#")
+	err = bindQueueToExchange(vhostName, EventProcessFinishedQueue, "#.finished.#")
 	if err != nil {
 		return &Broker{}, err
 	}
 
-	err = bindQueueToExchange(vhostName, EVENT_PERSIST_REQUEST_QUEUE, "#.inexecution.#")
+	err = bindQueueToExchange(vhostName, eventExecutorQueue, "#.executor.#")
 	if err != nil {
 		return &Broker{}, err
 	}
 
-	err = bindQueueToExchange(vhostName, EVENTSTORE_QUEUE, "#.store.#")
+	err = bindQueueToExchange(vhostName, EventPersistRequestQueue, "#.inexecution.#")
 	if err != nil {
 		return &Broker{}, err
 	}
 
-	err = bindQueueToExchange(vhostName, EVENT_PERSIST_QUEUE, "#.persist.#")
+	err = bindQueueToExchange(vhostName, EventstoreQueue, "#.store.#")
 	if err != nil {
 		return &Broker{}, err
 	}
 
-	err = bindQueueToExchange(vhostName, EVENT_EXCEPTION_QUEUE, "#.exception.#")
+	err = bindQueueToExchange(vhostName, EventPersistQueue, "#.persist.#")
 	if err != nil {
 		return &Broker{}, err
 	}
 
-	err = bindQueueToExchange(vhostName, EVENT_PERSIST_ERROR_QUEUE, "#.persist_error.#")
+	err = bindQueueToExchange(vhostName, EventExceptionQueue, "#.exception.#")
+	if err != nil {
+		return &Broker{}, err
+	}
+
+	err = bindQueueToExchange(vhostName, eventPersistErrorQueue, "#.persist_error.#")
 	if err != nil {
 		return &Broker{}, err
 	}
@@ -170,7 +182,7 @@ func bindQueueToExchange(vhost, queue, routingKey string) (err error) {
 		DestinationType: "q",
 		RoutingKey:      routingKey,
 		Vhost:           vhost,
-		Source:          EXCHANGE_NAME,
+		Source:          exchangeName,
 	})
 
 	_, err = rmqc.DeclareBinding(vhost, rab.BindingInfo{
@@ -178,7 +190,7 @@ func bindQueueToExchange(vhost, queue, routingKey string) (err error) {
 		DestinationType: "q",
 		RoutingKey:      errorQueue(queue),
 		Vhost:           vhost,
-		Source:          EXCHANGE_NAME + ".error",
+		Source:          exchangeName + ".error",
 	})
 	return
 }
@@ -240,13 +252,14 @@ func parseMessage(message interface{}) (body []byte, err error) {
 	return
 }
 
+//PublishIn publish message to a exchange with a routing key
 func (broker *Broker) PublishIn(exchange, routingKey string, message interface{}) error {
 
 	if body, err := parseMessage(message); err != nil {
 		return err
 	} else {
 		if err := broker.channel.Publish(
-			EXCHANGE_NAME,
+			exchangeName,
 			routingKey,
 			false,
 			false,
@@ -270,7 +283,7 @@ func (broker *Broker) Publish(routingKey string, message interface{}) error {
 	broker.mux.Lock()
 	defer broker.mux.Unlock()
 	var err error
-	err = broker.PublishIn(EXCHANGE_NAME, routingKey, message)
+	err = broker.PublishIn(exchangeName, routingKey, message)
 	recovery := false
 	for err != nil {
 		recovery = true
@@ -281,7 +294,7 @@ func (broker *Broker) Publish(routingKey string, message interface{}) error {
 			log.Error(errR)
 			err = errR
 		} else {
-			err = broker.PublishIn(EXCHANGE_NAME, routingKey, message)
+			err = broker.PublishIn(exchangeName, routingKey, message)
 		}
 	}
 	if recovery {
@@ -310,6 +323,7 @@ func (broker *Broker) reconnect() error {
 	return broker.Listen()
 }
 
+//Get a message from queue
 func (broker *Broker) Get(queue string, action func(*domain.Event) error) error {
 	broker.mux.Lock()
 	defer broker.mux.Unlock()
@@ -337,6 +351,7 @@ func (broker *Broker) Get(queue string, action func(*domain.Event) error) error 
 	return nil
 }
 
+//Pop a message from queue
 func (broker *Broker) Pop(queue string) (event *domain.Event, err error) {
 	err = broker.Get(queue, func(evt *domain.Event) error {
 		event = evt
@@ -345,6 +360,7 @@ func (broker *Broker) Pop(queue string) (event *domain.Event, err error) {
 	return
 }
 
+//First get first message in a queue
 func (broker *Broker) First(queue string) (event *domain.Event, err error) {
 	err = broker.Get(queue, func(evt *domain.Event) error {
 		event = evt
@@ -353,6 +369,7 @@ func (broker *Broker) First(queue string) (event *domain.Event, err error) {
 	return
 }
 
+//Swap swaps first message from some queue to another
 func (broker *Broker) Swap(fromQueue, routingKey string) error {
 	broker.mux.Lock()
 	defer broker.mux.Unlock()
@@ -360,7 +377,7 @@ func (broker *Broker) Swap(fromQueue, routingKey string) error {
 		return err
 	} else if !ok {
 		return nil
-	} else if err := broker.PublishIn(EXCHANGE_NAME, routingKey, msg.Body); err != nil {
+	} else if err := broker.PublishIn(exchangeName, routingKey, msg.Body); err != nil {
 		log.Error(err)
 		return msg.Nack(false, true)
 	} else {
@@ -370,16 +387,17 @@ func (broker *Broker) Swap(fromQueue, routingKey string) error {
 }
 
 //RegisterWorker to consume messages from queue
-func (broker *Broker) RegisterWorker(qtd int, q_name string, callback func([]byte) error) error {
+func (broker *Broker) RegisterWorker(qtd int, qname string, callback func([]byte) error) error {
 	wk := worker{
 		qtd:      qtd,
-		q_name:   q_name,
+		qname:    qname,
 		callback: callback,
 	}
 	broker.workers = append(broker.workers, wk)
 	return nil
 }
 
+//Listen starts to listen RabbitMQ
 func (broker *Broker) Listen() error {
 	return broker.runWorkers()
 }
@@ -393,13 +411,13 @@ func (broker *Broker) runWorkers() error {
 				return err
 			}
 			msgs, err := ch.Consume(
-				wk.q_name, // queue
-				"",        // consumer
-				false,     // auto-ack
-				false,     // exclusive
-				false,     // no-local
-				false,     // no-wait
-				nil,       // args
+				wk.qname, // queue
+				"",       // consumer
+				false,    // auto-ack
+				false,    // exclusive
+				false,    // no-local
+				false,    // no-wait
+				nil,      // args
 			)
 			if err != nil {
 				log.Error(err)
@@ -409,7 +427,7 @@ func (broker *Broker) runWorkers() error {
 				for event := range msgs {
 					if err := w.callback(event.Body); err != nil {
 						log.Error(err)
-						if err := broker.PublishIn(EXCHANGE_NAME+".error", errorQueue(w.q_name), event.Body); err != nil {
+						if err := broker.PublishIn(exchangeName+".error", errorQueue(w.qname), event.Body); err != nil {
 							//TODO what is the best approach?
 							log.Error(err)
 							event.Nack(false, true)

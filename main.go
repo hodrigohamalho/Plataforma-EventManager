@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ONSBR/Plataforma-EventManager/infra/factories"
+
 	"github.com/ONSBR/Plataforma-EventManager/actions"
 	"github.com/ONSBR/Plataforma-EventManager/api"
 	"github.com/ONSBR/Plataforma-EventManager/bus"
 	"github.com/ONSBR/Plataforma-EventManager/eventstore"
-	"github.com/ONSBR/Plataforma-EventManager/lock"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,11 +21,10 @@ func init() {
 }
 
 func registerActionsToRabbitMq() *bus.Broker {
-	broker := bus.GetBroker()
-	actions.SetBroker(broker)
-	broker.RegisterWorker(1, bus.EVENTSTORE_QUEUE, actions.PushEventToEventStore)
-	broker.RegisterWorker(1, bus.EVENT_PROCESS_FINISHED_QUEUE, actions.FinalizeProcessInstance)
-	broker.RegisterWorker(1, bus.EVENT_EXCEPTION_QUEUE, actions.SetFailureProcess)
+	broker := factories.GetBroker()
+	broker.RegisterWorker(1, bus.EventstoreQueue, actions.PushEventToEventStore)
+	broker.RegisterWorker(1, bus.EventProcessFinishedQueue, actions.FinalizeProcessInstance)
+	broker.RegisterWorker(1, bus.EventExceptionQueue, actions.SetFailureProcess)
 	broker.Listen()
 	return broker
 }
@@ -33,12 +33,11 @@ func main() {
 	fmt.Println(logo())
 	log.Info("Starting Event Manager")
 	log.Info("Installing Bus")
-	broker := registerActionsToRabbitMq()
+	registerActionsToRabbitMq()
 	log.Info("Starting Mongo")
-	lock.UpMongo()
 	eventstore.Install()
 	log.Info("Starting API")
-	api.BuildAPI(broker)
+	api.Build()
 }
 
 func logo() (logo string) {
