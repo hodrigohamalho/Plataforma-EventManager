@@ -36,5 +36,5 @@ func SplitEvent(event *domain.Event) ([]*domain.Event, error) {
 }
 
 func isSplitable(event *domain.Event) bool {
-	return event.Scope == "execution" && event.Bindings[0].Reprocessable
+	return (event.Scope == "execution" || event.Scope == "reprocessing") && event.Bindings[0].Reprocessable
 }
