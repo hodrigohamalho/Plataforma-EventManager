@@ -136,7 +136,7 @@ func influxWrite(point string) (string, error) {
 		return "", err
 	}
 	if res.StatusCode != 204 {
-		return "", fmt.Errorf("influx refuse to accept entry")
+		return "", fmt.Errorf("influx refuse to accept entry %s", res.Status)
 	}
 	defer res.Body.Close()
 	b, _ := ioutil.ReadAll(res.Body)

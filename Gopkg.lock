@@ -29,6 +29,12 @@
   revision = "5a0f697c9ed9d68fef0116532c6e05cfeae00e55"
 
 [[projects]]
+  name = "github.com/google/uuid"
+  packages = ["."]
+  revision = "064e2069ce9c359c118179501254f67d7d37ba24"
+  version = "0.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/gopherjs/gopherjs"
   packages = ["js"]
@@ -46,10 +52,11 @@
   revision = "57fdcb988a5c543893cc61bce354a6e24ab70022"
 
 [[projects]]
+  branch = "feature/topic-permissions"
   name = "github.com/michaelklishin/rabbit-hole"
   packages = ["."]
-  revision = "751d8f6874248f7243698c6f8377983879d744e9"
-  version = "v1.4.0"
+  revision = "1ffa18cc2b8dce965a836e8b1c72fa97e0ac8a20"
+  source = "github.com/PMoneda/rabbit-hole"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -70,16 +77,9 @@
 [[projects]]
   name = "github.com/smartystreets/goconvey"
   packages = [
-    ".",
+    "convey",
     "convey/gotest",
-    "convey/reporting",
-    "web/server/api",
-    "web/server/contract",
-    "web/server/executor",
-    "web/server/messaging",
-    "web/server/parser",
-    "web/server/system",
-    "web/server/watch"
+    "convey/reporting"
   ]
   revision = "9e8dc3f972df6c8fcc0375ef492c24d0bb204857"
   version = "1.6.3"
@@ -124,6 +124,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7e5af73a2c1f29f6177dae50e010b1f9b4520e27bc5970a90e8fa561228b98e1"
+  inputs-digest = "bab6650a7d27d5a9ee72d8e434ece59308ae7a51a0986911b48eb15cbc1d95de"
   solver-name = "gps-cdcl"
   solver-version = 1

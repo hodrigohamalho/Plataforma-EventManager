@@ -35,7 +35,8 @@
 
 [[constraint]]
   name = "github.com/michaelklishin/rabbit-hole"
-  version = "1.4.0"
+  branch = "feature/topic-permissions"
+  source = "github.com/PMoneda/rabbit-hole"
 
 [[constraint]]
   name = "github.com/sirupsen/logrus"
