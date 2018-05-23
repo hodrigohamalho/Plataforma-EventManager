@@ -6,16 +6,24 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/ONSBR/Plataforma-EventManager/infra"
 )
 
+//Header is a http header protocol abstraction
+type Header struct {
+	Key   string
+	Value string
+}
+
 //Put make a PUT request
-func Put(url string, body interface{}) (string, error) {
-	return doRequest("PUT", url, body)
+func Put(url string, body interface{}, headers ...Header) (string, error) {
+	return doRequest("PUT", url, body, headers...)
 }
 
 //Post make a POST request
-func Post(url string, body interface{}) (string, error) {
-	return doRequest("POST", url, body)
+func Post(url string, body interface{}, headers ...Header) (string, error) {
+	return doRequest("POST", url, body, headers...)
 }
 
 //Get make a GET request
@@ -40,21 +48,37 @@ func GetJSON(url string, obj interface{}) error {
 	}
 }
 
-func doRequest(method, url string, body interface{}) (string, error) {
+func doRequest(method, url string, body interface{}, headers ...Header) (string, error) {
 	if mocks != nil {
 		return doRequestMock(method, url, body)
 	}
-	return httpRequest(method, url, body)
+	return httpRequest(method, url, body, headers...)
 }
 
-func httpRequest(method, url string, body interface{}) (string, error) {
+func httpRequest(method, url string, body interface{}, headers ...Header) (string, error) {
 	client := http.DefaultClient
-	if j, err := json.Marshal(body); err != nil {
-		return "", err
-	} else if req, err := http.NewRequest(method, url, strings.NewReader(string(j))); err != nil {
+	reqBody := ""
+	switch v := body.(type) {
+	case string:
+		reqBody = v
+	default:
+		if j, err := json.Marshal(body); err != nil {
+			return "", infra.NewArgumentException(err.Error())
+		} else {
+			reqBody = string(j)
+		}
+	}
+	if req, err := http.NewRequest(method, url, strings.NewReader(reqBody)); err != nil {
 		return "", err
 	} else {
-		req.Header["Content-Type"] = []string{"application/json"}
+		if headers == nil {
+			req.Header["Content-Type"] = []string{"application/json"}
+		} else {
+			for _, header := range headers {
+				req.Header[header.Key] = []string{header.Value}
+			}
+		}
+
 		if resp, err := client.Do(req); err != nil {
 			return "", err
 		} else {

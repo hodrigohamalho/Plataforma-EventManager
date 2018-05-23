@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/Jeffail/gabs"
+	"github.com/ONSBR/Plataforma-EventManager/clients/http"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/infra"
 	log "github.com/sirupsen/logrus"
 )
 
+//Install prepare influxdb by creating database and retenrion policy
 func Install() {
 	log.Info("Connecting to InfluxDB")
 	go (func() {
@@ -112,33 +112,13 @@ func showDatabases() []string {
 
 func executeStatement(stmt string) (string, error) {
 	_url := fmt.Sprintf("%s/query?u=%s&p=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""))
-	payload := strings.NewReader(url.PathEscape(fmt.Sprintf("q=%s", stmt)))
-	req, _ := http.NewRequest("POST", _url, payload)
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+	payload := url.PathEscape(fmt.Sprintf("q=%s", stmt))
+	return http.Post(_url, payload, http.Header{Key: "Content-Type", Value: "application/x-www-form-urlencoded"})
+
 }
 
 func influxWrite(point string) (string, error) {
 	_url := fmt.Sprintf("%s/write?u=%s&p=%s&db=%s&rp=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""), infra.GetEnv("DATABASE", "teste"), infra.GetEnv("RETENTION_POLICY", "teste"))
-	payload := strings.NewReader(point)
-	req, _ := http.NewRequest("POST", _url, payload)
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	if res.StatusCode != 204 {
-		return "", fmt.Errorf("influx refuse to accept entry %s", res.Status)
-	}
-	defer res.Body.Close()
-	b, _ := ioutil.ReadAll(res.Body)
-	return string(b), nil
+	return http.Post(_url, point)
+
 }

@@ -40,11 +40,22 @@ func RegisterMock(mock *ReponseMock) {
 	mocks[key] = mock
 }
 
-func doRequestMock(method, url string, body interface{}) (string, error) {
+func getMock(method, url string) *ReponseMock {
 	key := fmt.Sprintf("%s:%s", method, url)
-	mock, ok := mocks[key]
-	if !ok {
-		return "", infra.NewException("test_exception", fmt.Sprintf("mock for %s not defined exception", key))
+	for k, v := range mocks {
+		if v.URL == "*" && v.Method == method {
+			return v
+		} else if k == key {
+			return v
+		}
+	}
+	return nil
+}
+
+func doRequestMock(method, url string, body interface{}) (string, error) {
+	mock := getMock(method, url)
+	if mock == nil {
+		return "", infra.NewException("test_exception", fmt.Sprintf("mock for %s %s not defined exception", method, url))
 	}
 	mock.executed++
 	jsonBody, _ := json.Marshal(body)

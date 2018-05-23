@@ -7,7 +7,7 @@ import (
 )
 
 //TODO maybe will be better put this events on apicore
-var systemEvents = []string{
+var SystemEvents = []string{
 	"system.reprocessing.error",
 	"system.executor.enable.debug",
 	"system.executor.disable.debug",
@@ -66,7 +66,7 @@ func (e *Event) ApplyDefaultFields() {
 
 //IsSystemEvent returns true if this event is a internal platform event
 func (e *Event) IsSystemEvent() bool {
-	for _, sysEvt := range systemEvents {
+	for _, sysEvt := range SystemEvents {
 		if sysEvt == e.Name {
 			return true
 		}

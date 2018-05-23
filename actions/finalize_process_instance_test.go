@@ -1,7 +1,6 @@
 package actions
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -15,14 +14,13 @@ func TestShouldFinalizeProcessInstance(t *testing.T) {
 	Convey("Should finalize process on apicore", t, func() {
 		mock := http.ReponseMock{
 			Method: "POST",
-			URL:    "http://localhost:9110/core/persist",
+			URL:    "*",
 		}
 		http.RegisterMock(&mock)
 		event := domain.NewEvent()
 		event.Name = "test"
 		event.Payload["instance_id"] = "1"
 		FinalizeProcessInstance(event)
-		fmt.Println(mock.RequestBody())
 		if !strings.Contains(mock.RequestBody(), `"status":"finished"`) {
 			t.Fail()
 		}
