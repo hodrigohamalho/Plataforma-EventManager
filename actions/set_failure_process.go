@@ -1,26 +1,12 @@
 package actions
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/sdk"
-	log "github.com/sirupsen/logrus"
 )
 
 //SetFailureProcess on ApiCore
-func SetFailureProcess(payload []byte) (err error) {
-	celeryMessage := new(domain.CeleryMessage)
-	err = json.Unmarshal(payload, celeryMessage)
-	if len(celeryMessage.Args) == 0 {
-		return fmt.Errorf("celery message should have an event")
-	}
-	event := celeryMessage.Args[0]
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
+func SetFailureProcess(event *domain.Event) (err error) {
 	id := event.Payload["instance_id"].(string)
 	err = sdk.UpdateProcessInstance(id, "failure")
 	return

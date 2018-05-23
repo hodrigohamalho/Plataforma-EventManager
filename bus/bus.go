@@ -50,7 +50,7 @@ type Broker struct {
 type worker struct {
 	qtd      int
 	qname    string
-	callback func([]byte) error
+	callback func(*domain.Event) error
 }
 
 //GetBroker returns a new broker
@@ -387,7 +387,7 @@ func (broker *Broker) Swap(fromQueue, routingKey string) error {
 }
 
 //RegisterWorker to consume messages from queue
-func (broker *Broker) RegisterWorker(qtd int, qname string, callback func([]byte) error) error {
+func (broker *Broker) RegisterWorker(qtd int, qname string, callback func(event *domain.Event) error) error {
 	wk := worker{
 		qtd:      qtd,
 		qname:    qname,
@@ -425,7 +425,14 @@ func (broker *Broker) runWorkers() error {
 			}
 			go (func(w worker, msgs <-chan amqp.Delivery) {
 				for event := range msgs {
-					if err := w.callback(event.Body); err != nil {
+					celeryMessage := new(domain.CeleryMessage)
+					err = json.Unmarshal(event.Body, celeryMessage)
+					eventParsed := celeryMessage.Args[0]
+					if err != nil {
+						log.Error(err.Error())
+						return
+					}
+					if err := w.callback(&eventParsed); err != nil {
 						log.Error(err)
 						if err := broker.PublishIn(exchangeName+".error", errorQueue(w.qname), event.Body); err != nil {
 							//TODO what is the best approach?
