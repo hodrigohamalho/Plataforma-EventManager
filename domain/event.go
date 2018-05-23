@@ -30,20 +30,16 @@ type Event struct {
 	Reproduction map[string]interface{} `json:"reproduction,omitempty"`
 	Reprocessing map[string]interface{} `json:"reprocessing,omitempty"`
 	Bindings     []*Operation
-	Commands     []*Command
 }
 
-type Command struct {
-	Event
-}
-
+//NewEvent creates a new Event Instance
 func NewEvent() *Event {
 	event := new(Event)
-	event.Commands = make([]*Command, 0, 0)
 	event.Bindings = make([]*Operation, 0, 0)
 	return event
 }
 
+//IsEndingEvent checkis event's name ends with .done, .error or .exception
 func (e *Event) IsEndingEvent() bool {
 	return strings.HasSuffix(e.Name, ".done") || strings.HasSuffix(e.Name, ".error") || strings.HasSuffix(e.Name, ".exception")
 }
@@ -67,31 +63,6 @@ func (e *Event) ApplyDefaultFields() {
 	}
 }
 
-//GetCommand returns a command from instance event
-func (e *Event) GetCommand() *Command {
-	cmd := new(Command)
-	cmd.AppOrigin = e.AppOrigin
-	cmd.Branch = e.Branch
-	cmd.InstanceID = e.InstanceID
-	cmd.Name = e.Name
-	cmd.Owner = e.Owner
-	cmd.Payload = e.Payload
-	cmd.Reprocessing = e.Reprocessing
-	cmd.Reproduction = e.Reproduction
-	cmd.Scope = e.Scope
-	return cmd
-}
-
-//AppendCommand adds a new command to a commands list
-func (e *Event) AppendCommand(command *Command) {
-	e.Commands = append(e.Commands, command)
-}
-
-//HasCommands returns true if this event has at least one command
-func (e *Event) HasCommands() bool {
-	return len(e.Commands) > 0
-}
-
 //IsSystemEvent returns true if this event is a internal platform event
 func (e *Event) IsSystemEvent() bool {
 	for _, sysEvt := range systemEvents {
@@ -100,4 +71,14 @@ func (e *Event) IsSystemEvent() bool {
 		}
 	}
 	return false
+}
+
+//ToEventState converts an event to state event
+func (e *Event) ToEventState() EventState {
+	return EventState{
+		Branch: e.Branch,
+		Name:   e.Name,
+		Scope:  e.Scope,
+		Status: Pending,
+	}
 }
