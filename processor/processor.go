@@ -1,169 +1,94 @@
 package processor
 
 import (
-	"encoding/json"
-	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/ONSBR/Plataforma-EventManager/infra"
-	"github.com/ONSBR/Plataforma-EventManager/sdk"
-	log "github.com/sirupsen/logrus"
+	"sync"
 
 	"github.com/ONSBR/Plataforma-EventManager/bus"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
+	"github.com/ONSBR/Plataforma-EventManager/infra"
 )
 
+//Processor is a router structure to route events comming from API
 type Processor struct {
-	dispatcher     bus.Dispatcher
-	currentPattern string
-	keyOrder       []string
-	executionFlow  map[string][]func(*domain.Event) error
-	cutOfRules     []func(*domain.Event) error
+	dispatcher  bus.Dispatcher
+	routes      []action
+	middlewares []middleware
+	mutex       sync.RWMutex
 }
 
+type middleware struct {
+	pattern string
+	action  func(*Context) error
+}
+
+type action struct {
+	pattern string
+	action  func(*Context) error
+}
+
+//NewProcessor creates a new instance of events processor
 func NewProcessor(dispatcher bus.Dispatcher) *Processor {
 	p := new(Processor)
 	p.dispatcher = dispatcher
-	p.keyOrder = make([]string, 0, 0)
-	p.executionFlow = make(map[string][]func(*domain.Event) error)
-	p.cutOfRules = make([]func(*domain.Event) error, 0, 0)
+	p.routes = make([]action, 0, 0)
+	p.middlewares = make([]middleware, 0, 0)
+	p.mutex = sync.RWMutex{}
 	return p
 }
 
-func (p *Processor) Where(pattern string) *Processor {
-	p.currentPattern = pattern
-	p.executionFlow[pattern] = make([]func(*domain.Event) error, 0, 0)
-	p.keyOrder = append(p.keyOrder, pattern)
-	return p
+//When register a event match pattern to bind to a callback function
+func (p *Processor) When(pattern string, callback func(*Context) error) {
+	p.routes = append(p.routes, action{pattern: pattern, action: callback})
 }
 
-func (p *Processor) CutOff(action func(event *domain.Event) error) *Processor {
-	p.cutOfRules = append(p.cutOfRules, action)
-	return p
+//Use register a middleware based on pattern matching on event name
+func (p *Processor) Use(pattern string, callback func(*Context) error) {
+	p.middlewares = append(p.middlewares, middleware{pattern: pattern, action: callback})
 }
 
-func (p *Processor) Execute(action func(event *domain.Event) error) *Processor {
-	p.executionFlow[p.currentPattern] = append(p.executionFlow[p.currentPattern], action)
-	return p
-}
-
-func (p *Processor) Dispatch(routingKey string) *Processor {
-
-	p.executionFlow[p.currentPattern] = append(p.executionFlow[p.currentPattern], func(event *domain.Event) error {
-		/*
-			Quando um evento no escopo de reprocessamento chega com o branch master eu aplico o processo de split no documento de controle do reprocessamento
-			então para cada branch derivada do master também será adicionado, ao documento de controle, os "eventos" splitados
-		*/
-		if event.Scope == "reprocessing" && event.Branch == "master" {
-			reprocessingOrigin := new(domain.ReprocessingData)
-			reprocessingOrigin.ParseEvent(event)
-			if response, err := sdk.GetDocument("reprocessing", map[string]string{"id": reprocessingOrigin.ID}); err != nil {
-				return err
-			} else {
-				reprocessingList := make([]domain.Reprocessing, 0, 1)
-				if err := json.Unmarshal([]byte(response), &reprocessingList); err != nil {
-					return infra.NewComponentException(err.Error())
-				}
-				reprocessing := reprocessingList[0]
-				for _, command := range event.Commands {
-					clone := new(domain.Event)
-					infra.Clone(event, clone)
-					clone.Branch = command.Branch
-					clone.Reprocessing["executed"] = false
-					reprocessing.Events = append(reprocessing.Events, clone)
-				}
-				sdk.ReplaceDocument("reprocessing", map[string]string{"id": reprocessingOrigin.ID}, reprocessing)
-			}
-		}
-		err := p.dispatcher.Publish(routingKey, event.ToCeleryMessage())
-		if len(event.Bindings) > 0 && !event.IsEndingEvent() {
-			binding := event.Bindings[0]
-			if binding.Reprocessable && event.HasCommands() {
-				log.Debug("Process is reprocessable")
-				log.Debug("Dispatching splited event")
-
-				for _, command := range event.Commands {
-					log.Debug(fmt.Sprintf("   ---> Event %s on Branch %s", command.Name, command.Branch))
-					if err = p.dispatcher.Publish(routingKey, command.ToCeleryMessage()); err != nil {
-						return infra.NewComponentException(err.Error())
-					}
-				}
-			}
-		}
-		return err
-	})
-	return p
-}
-
-func (p *Processor) Else(routingKey string) *Processor {
-	p.executionFlow["else"] = append(p.executionFlow[p.currentPattern], func(event *domain.Event) error {
-		return p.dispatcher.Publish(routingKey, event.ToCeleryMessage())
-	})
-	return p
-}
-
+//Push publish an event to Processor router
 func (p *Processor) Push(event *domain.Event) (err error) {
-	p.currentPattern = ""
-	suitable := false
-	if event.Branch == "" {
-		event.Branch = "master"
-	}
-	if event.Scope == "" {
-		event.Scope = "execution"
-	}
-	log.Info(fmt.Sprintf("Received event %s Scope %s Branch %s", event.Name, event.Scope, event.Branch))
-	event.Bindings, err = sdk.EventBindings(event.Name)
-	for _, cutOffRule := range p.cutOfRules {
-		if err = cutOffRule(event); err != nil {
-			log.Error(fmt.Sprintf("Cutting off event %s with error %s", event.Name, err.Error()))
-			return
-		}
-	}
-	if len(event.Bindings) > 0 {
-		systemID := event.Bindings[0].SystemID
-		if branches, err := sdk.GetOpenBranchesBySystem(systemID); err != nil {
-			return err
-		} else {
-			for _, branch := range branches {
-				command := event.GetCommand()
-				command.Branch = branch.Name
-				event.Commands = append(event.Commands, command)
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	action, err := getMatchActions(event.Name, p.routes)
+	middlewares, err := getMiddlewaresByPattern(event.Name, p.middlewares)
+	ctx := Context{Event: event, dispatcher: p.dispatcher, Session: make(map[string]string)}
+	if action != nil && middlewares != nil {
+		for _, middleware := range middlewares {
+			if proceed := middleware.action(&ctx); proceed != nil {
+				return proceed
 			}
 		}
 	}
-	//Por padrao todo evento vai para o event store
-	if err = p.dispatcher.Publish("store", event.ToCeleryMessage()); err != nil {
-		return infra.NewComponentException(err.Error())
+	if action != nil {
+		return action(&ctx)
 	}
-	for _, k := range p.keyOrder {
-		actions := p.executionFlow[k]
-		if matched, err := regexp.MatchString(convertPattern(k), event.Name); err != nil {
-			return infra.NewSystemException(err.Error())
+	return err
+}
+
+func getMiddlewaresByPattern(pattern string, middlewares []middleware) ([]middleware, error) {
+	matches := make([]middleware, 0, 0)
+	for _, middleware := range middlewares {
+		if matched, err := regexp.MatchString(convertPattern(middleware.pattern), pattern); err != nil {
+			return nil, infra.NewSystemException(err.Error())
 		} else if matched {
-			suitable = true
-			for _, fnc := range actions {
-				if err := fnc(event); err != nil {
-					switch t := err.(type) {
-					case *infra.Exception:
-						return t
-					default:
-						log.Error(t)
-						return infra.NewSystemException(t.Error())
-					}
-				}
-			}
-			break
+			matches = append(matches, middleware)
 		}
 	}
-	if !suitable {
-		fncs, ok := p.executionFlow["else"]
-		if ok && len(fncs) > 0 {
-			return fncs[0](event)
+	return matches, nil
+}
+
+func getMatchActions(eventName string, actions []action) (func(*Context) error, error) {
+	for _, action := range actions {
+		if matched, err := regexp.MatchString(convertPattern(action.pattern), eventName); err != nil {
+			return nil, infra.NewSystemException(err.Error())
+		} else if matched {
+			return action.action, nil
 		}
-		return infra.NewArgumentException(fmt.Sprintf("Event didn't match any clause"))
 	}
-	return nil
+	return nil, nil
 }
 
 func convertPattern(s string) string {

@@ -1,11 +1,11 @@
-linux:
-		GOOS=linux go build -o dist/event-manager
+default:
+		GOOS=linux CGO_ENABLED=0 go build -o dist/event-manager
 
-disable_cgo:
-		set CGO_ENABLED=0
-run_windows:
-		set GOOS=windows
-		go run main.go
+convey:
+	goconvey --port 8890
+
+test:
+	go test ../... -v
 
 
 

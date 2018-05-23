@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ONSBR/Plataforma-EventManager/client"
+	"github.com/ONSBR/Plataforma-EventManager/clients/http"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/infra"
 )
@@ -22,7 +22,7 @@ func GetSolutionIDByEventName(eventName string) (string, error) {
 
 	arr := make([]*domain.Operation, 0, 0)
 
-	if err := client.GetJSON(url, &arr); err != nil {
+	if err := http.GetJSON(url, &arr); err != nil {
 		return "", err
 	}
 	if len(arr) == 0 {
@@ -35,7 +35,7 @@ func GetSolutionIDByEventName(eventName string) (string, error) {
 func EventBindings(eventName string) ([]*domain.Operation, error) {
 	url := fmt.Sprintf("%s/operation?filter=bindingEvent&event=%s", getUrl(), eventName)
 	arr := make([]*domain.Operation, 0, 0)
-	err := client.GetJSON(url, &arr)
+	err := http.GetJSON(url, &arr)
 	return arr, err
 }
 
@@ -62,7 +62,7 @@ func UpdateProcessInstance(instanceID, status string) error {
 	url := fmt.Sprintf("%s/persist", getUrl())
 	arr := make([]*ProcessInstance, 1, 1)
 	arr[0] = procInstance
-	if _, err := client.Post(url, arr); err != nil {
+	if _, err := http.Post(url, arr); err != nil {
 		return err
 	}
 	return nil
@@ -71,7 +71,7 @@ func UpdateProcessInstance(instanceID, status string) error {
 //GetOpenBranchesBySystem returns all branches open on apicore
 func GetOpenBranchesBySystem(systemID string) ([]Branch, error) {
 	url := fmt.Sprintf("%s/branch?filter=bySystemIdAndStatus&systemId=%s&status=open", getUrl(), systemID)
-	if response, err := client.Get(url); err != nil {
+	if response, err := http.Get(url); err != nil {
 		return nil, infra.NewArgumentException(err.Error())
 	} else {
 		branches := make([]Branch, 0, 0)
