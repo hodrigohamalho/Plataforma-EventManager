@@ -41,6 +41,13 @@ func GetJSON(url string, obj interface{}) error {
 }
 
 func doRequest(method, url string, body interface{}) (string, error) {
+	if mocks != nil {
+		return doRequestMock(method, url, body)
+	}
+	return httpRequest(method, url, body)
+}
+
+func httpRequest(method, url string, body interface{}) (string, error) {
 	client := http.DefaultClient
 	if j, err := json.Marshal(body); err != nil {
 		return "", err

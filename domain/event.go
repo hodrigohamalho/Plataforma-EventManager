@@ -36,6 +36,7 @@ type Event struct {
 func NewEvent() *Event {
 	event := new(Event)
 	event.Bindings = make([]*Operation, 0, 0)
+	event.Payload = make(map[string]interface{})
 	return event
 }
 
