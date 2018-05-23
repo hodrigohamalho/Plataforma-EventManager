@@ -74,12 +74,28 @@ func (e *Event) IsSystemEvent() bool {
 	return false
 }
 
+//IsReprocessing returns true if event's scope is reprocesing
+func (e *Event) IsReprocessing() bool {
+	return e.Scope == "reprocessing"
+}
+
+//IsExecution returns true if event's scope is execution
+func (e *Event) IsExecution() bool {
+	return e.Scope == "" || e.Scope == "execution"
+}
+
+//IsReproduction returns true if event's scope is reproduction
+func (e *Event) IsReproduction() bool {
+	return e.Scope == "reproduction"
+}
+
 //ToEventState converts an event to state event
-func (e *Event) ToEventState() EventState {
-	return EventState{
+func (e *Event) ToEventState() *EventState {
+	return &EventState{
 		Branch: e.Branch,
 		Name:   e.Name,
 		Scope:  e.Scope,
 		Status: Pending,
+		Tag:    e.Tag,
 	}
 }

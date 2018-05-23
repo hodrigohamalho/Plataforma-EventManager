@@ -20,6 +20,7 @@ func registerCommandsAPI(r *gin.Engine) {
 			})
 		} else if err := fullEventFlow.Push(event); err != nil {
 			ex := err.(*infra.Exception)
+			log.Error(ex.Error())
 			c.JSON(ex.HTTPStatus(), ex)
 		} else {
 			c.JSON(200, gin.H{
@@ -35,6 +36,7 @@ func registerCommandsAPI(r *gin.Engine) {
 				"message": err.Error(),
 			})
 		} else if err := storeEventFlow.Push(event); err != nil {
+			log.Error(err.Error())
 			ex := err.(*infra.Exception)
 			c.JSON(ex.HTTPStatus(), ex)
 		} else {

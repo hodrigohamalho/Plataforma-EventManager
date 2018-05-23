@@ -67,3 +67,35 @@ func TestShouldVerifyIfEventIsAnEndingEvent(t *testing.T) {
 		}
 	})
 }
+
+func TestShouldTestEventScope(t *testing.T) {
+	Convey("should verify if an event is a reprocessing", t, func() {
+		event := pickEvent()
+		event.Scope = "reprocessing"
+		if !event.IsReprocessing() {
+			t.Fail()
+		}
+	})
+
+	Convey("should verify if an event is a execution", t, func() {
+		event := pickEvent()
+		if !event.IsExecution() {
+			t.Fail()
+		}
+
+		event.Scope = "execution"
+
+		if !event.IsExecution() {
+			t.Fail()
+		}
+
+	})
+
+	Convey("should verify if an event is a reproduction", t, func() {
+		event := pickEvent()
+		event.Scope = "reproduction"
+		if !event.IsReproduction() {
+			t.Fail()
+		}
+	})
+}

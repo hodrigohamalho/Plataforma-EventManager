@@ -254,7 +254,6 @@ func parseMessage(message interface{}) (body []byte, err error) {
 
 //PublishIn publish message to a exchange with a routing key
 func (broker *Broker) PublishIn(exchange, routingKey string, message interface{}) error {
-
 	if body, err := parseMessage(message); err != nil {
 		return err
 	} else {

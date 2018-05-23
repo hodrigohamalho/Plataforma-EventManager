@@ -3,6 +3,7 @@ package processor
 import (
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/ONSBR/Plataforma-EventManager/bus"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
@@ -12,11 +13,17 @@ import (
 //Processor is a router structure to route events comming from API
 type Processor struct {
 	dispatcher  bus.Dispatcher
-	routes      map[string]func(*Context) error
+	routes      []action
 	middlewares []middleware
+	mutex       sync.RWMutex
 }
 
 type middleware struct {
+	pattern string
+	action  func(*Context) error
+}
+
+type action struct {
 	pattern string
 	action  func(*Context) error
 }
@@ -25,14 +32,15 @@ type middleware struct {
 func NewProcessor(dispatcher bus.Dispatcher) *Processor {
 	p := new(Processor)
 	p.dispatcher = dispatcher
-	p.routes = make(map[string]func(*Context) error)
+	p.routes = make([]action, 0, 0)
 	p.middlewares = make([]middleware, 0, 0)
+	p.mutex = sync.RWMutex{}
 	return p
 }
 
 //When register a event match pattern to bind to a callback function
 func (p *Processor) When(pattern string, callback func(*Context) error) {
-	p.routes[pattern] = callback
+	p.routes = append(p.routes, action{pattern: pattern, action: callback})
 }
 
 //Use register a middleware based on pattern matching on event name
@@ -42,6 +50,8 @@ func (p *Processor) Use(pattern string, callback func(*Context) error) {
 
 //Push publish an event to Processor router
 func (p *Processor) Push(event *domain.Event) (err error) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 	action, err := getMatchActions(event.Name, p.routes)
 	middlewares, err := getMiddlewaresByPattern(event.Name, p.middlewares)
 	ctx := Context{Event: event, dispatcher: p.dispatcher, Session: make(map[string]string)}
@@ -70,12 +80,12 @@ func getMiddlewaresByPattern(pattern string, middlewares []middleware) ([]middle
 	return matches, nil
 }
 
-func getMatchActions(eventName string, _map map[string]func(*Context) error) (func(*Context) error, error) {
-	for k, v := range _map {
-		if matched, err := regexp.MatchString(convertPattern(k), eventName); err != nil {
+func getMatchActions(eventName string, actions []action) (func(*Context) error, error) {
+	for _, action := range actions {
+		if matched, err := regexp.MatchString(convertPattern(action.pattern), eventName); err != nil {
 			return nil, infra.NewSystemException(err.Error())
 		} else if matched {
-			return v, nil
+			return action.action, nil
 		}
 	}
 	return nil, nil

@@ -14,5 +14,10 @@ type Context struct {
 
 //Publish sends message to broker
 func (c *Context) Publish(routingKey string, event *domain.Event) error {
-	return c.dispatcher.Publish("store."+routingKey, event.ToCeleryMessage())
+	return c.dispatcher.Publish(routingKey, event.ToCeleryMessage())
+}
+
+//Dispatcher returns dispatcher from context
+func (c *Context) Dispatcher() bus.Dispatcher {
+	return c.dispatcher
 }
