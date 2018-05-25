@@ -34,6 +34,7 @@ func GetEventRouter() *processor.Processor {
 	actions.SwapPersistEventToExecutorQueue(factories.GetDispatcher())
 	p.When("*.persist.request", handlers.HandlePersistenceEvent)
 	p.When("*.exception", handlers.HandleExceptionEvent)
+	p.When("*.error", handlers.HandleExceptionEvent)
 	p.When("*.done", handlers.HandleDoneEvent)
 	p.When("system.process.persist.error", handlers.HandlePersistenceErrorEvent)
 	p.When("*", handlers.HandleGeneralEvent)

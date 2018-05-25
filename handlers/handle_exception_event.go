@@ -20,5 +20,5 @@ func HandleExceptionEvent(c *processor.Context) error {
 	if err := actions.UpdateSplitState(c.Event, splitState, domain.Error); err != nil {
 		return err
 	}
-	return c.Publish("store.executor", c.Event)
+	return c.Publish("store.executor.exception", c.Event)
 }

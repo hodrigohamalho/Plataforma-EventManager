@@ -22,7 +22,7 @@ func HandleDoneEvent(c *processor.Context) error {
 	}
 	if splitState.IsComplete() {
 		log.Info("Dispatching done event")
-		return c.Publish("store.executor", c.Event)
+		return c.Publish("store.executor.finished", c.Event)
 	}
 	log.Info(fmt.Sprintf("Supressing event %s on branch %s", c.Event.Name, c.Event.Branch))
 	return c.Publish("store", c.Event)
