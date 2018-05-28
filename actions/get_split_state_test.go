@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
@@ -95,6 +96,26 @@ func TestShouldNotFindSplitState(t *testing.T) {
 			Method:      "GET",
 			ReponseBody: `[]`,
 			URL:         "*",
+		}
+		http.With(t, func(ctx *http.MockContext) {
+			ctx.RegisterMock(&mock)
+			evt := domain.Event{
+				Tag: "f56cfca7-6282-11e8-8808-0242ac12000c",
+			}
+			_, err := GetSplitState(&evt)
+			if err == nil {
+				ctx.Fail()
+			}
+		})
+	})
+}
+
+func TestShouldReturnError(t *testing.T) {
+	Convey("should return error on request", t, func() {
+		mock := http.ReponseMock{
+			Method:        "GET",
+			URL:           "*",
+			ResponseError: fmt.Errorf("error"),
 		}
 		http.With(t, func(ctx *http.MockContext) {
 			ctx.RegisterMock(&mock)
