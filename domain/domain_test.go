@@ -99,3 +99,40 @@ func TestShouldTestEventScope(t *testing.T) {
 		}
 	})
 }
+
+func TestShouldApplyDefaultFields(t *testing.T) {
+	Convey("should apply default fields in event", t, func() {
+		event := NewEvent()
+		event.ApplyDefaultFields()
+
+		if event.Scope != "execution" {
+			t.Fail()
+		}
+
+		if event.Branch != "master" {
+			t.Fail()
+		}
+
+		if event.Tag == "" {
+			t.Fail()
+		}
+	})
+}
+
+func TestShouldCheckIfEventIsSystemEvent(t *testing.T) {
+	Convey("should check if an event is a system event", t, func() {
+		for _, e := range SystemEvents {
+			evt := NewEvent()
+			evt.Name = e
+			if !evt.IsSystemEvent() {
+				t.Fail()
+			}
+		}
+
+		evt := NewEvent()
+		evt.Name = "test"
+		if evt.IsSystemEvent() {
+			t.Fail()
+		}
+	})
+}
