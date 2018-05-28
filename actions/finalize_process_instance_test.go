@@ -16,7 +16,7 @@ func TestShouldFinalizeProcessInstance(t *testing.T) {
 			Method: "POST",
 			URL:    "*",
 		}
-		http.With(func(ctx *http.MockContext) {
+		http.With(t, func(ctx *http.MockContext) {
 			ctx.RegisterMock(&mock)
 			event := domain.NewEvent()
 			event.Name = "test"

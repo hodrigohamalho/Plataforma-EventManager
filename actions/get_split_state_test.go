@@ -14,25 +14,26 @@ func TestShouldGetSplitState(t *testing.T) {
 
 		mock := http.ReponseMock{
 			Method: "GET",
+			URL:    "*",
 			ReponseBody: `
-			{
-				"tag" : "f56cfca7-6282-11e8-8808-0242ac12000c",
-				"events" : [
-					{
-						"name" : "create.client.request",
-						"eventOut" : "cadastro-cliente.done",
-						"version" : "135b9ce9-b73d-4e86-b807-8df8fff73fb9",
-						"tag" : "f56cfca7-6282-11e8-8808-0242ac12000c",
-						"status" : "success",
-						"branch" : "master",
-						"scope" : "execution"
-					}
-				]
-			}
+[{
+	"tag" : "f56cfca7-6282-11e8-8808-0242ac12000c",
+	"events" : [
+		{
+			"name" : "create.client.request",
+			"eventOut" : "cadastro-cliente.done",
+			"version" : "135b9ce9-b73d-4e86-b807-8df8fff73fb9",
+			"tag" : "f56cfca7-6282-11e8-8808-0242ac12000c",
+			"status" : "success",
+			"branch" : "master",
+			"scope" : "execution"
+		}
+	]
+}]
 			`,
 		}
 
-		http.With(func(ctx *http.MockContext) {
+		http.With(t, func(ctx *http.MockContext) {
 			ctx.RegisterMock(&mock)
 			evt := domain.Event{
 				Tag: "f56cfca7-6282-11e8-8808-0242ac12000c",
@@ -50,20 +51,59 @@ func TestShouldGetSplitState(t *testing.T) {
 	})
 }
 
-func TestShouldNotFindSplitState(t *testing.T) {
-	Convey("should not find split state", t, func() {
+func TestShouldReturnErrorWhenContractIsNotValid(t *testing.T) {
+	Convey("should return error when contract is not valid", t, func() {
+
 		mock := http.ReponseMock{
-			Method:      "GET",
-			ReponseBody: `[]`,
+			Method: "GET",
+			URL:    "*",
+			ReponseBody: `
+{
+	"tag" : "f56cfca7-6282-11e8-8808-0242ac12000c",
+	"events" : [
+		{
+			"name" : "create.client.request",
+			"eventOut" : "cadastro-cliente.done",
+			"version" : "135b9ce9-b73d-4e86-b807-8df8fff73fb9",
+			"tag" : "f56cfca7-6282-11e8-8808-0242ac12000c",
+			"status" : "success",
+			"branch" : "master",
+			"scope" : "execution"
 		}
-		http.With(func(ctx *http.MockContext) {
+	]
+}
+			`,
+		}
+
+		http.With(t, func(ctx *http.MockContext) {
 			ctx.RegisterMock(&mock)
 			evt := domain.Event{
 				Tag: "f56cfca7-6282-11e8-8808-0242ac12000c",
 			}
 			_, err := GetSplitState(&evt)
-			if err != nil {
+			if err == nil {
 				t.Fail()
+			}
+		})
+
+	})
+}
+
+func TestShouldNotFindSplitState(t *testing.T) {
+	Convey("should not find split state", t, func() {
+		mock := http.ReponseMock{
+			Method:      "GET",
+			ReponseBody: `[]`,
+			URL:         "*",
+		}
+		http.With(t, func(ctx *http.MockContext) {
+			ctx.RegisterMock(&mock)
+			evt := domain.Event{
+				Tag: "f56cfca7-6282-11e8-8808-0242ac12000c",
+			}
+			_, err := GetSplitState(&evt)
+			if err == nil {
+				ctx.Fail()
 			}
 		})
 	})
