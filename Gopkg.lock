@@ -9,6 +9,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/PMoneda/http"
+  packages = ["."]
+  revision = "b082ec80cf2141d4003ed50e995a999b828c4f5c"
+
+[[projects]]
+  branch = "master"
   name = "github.com/gin-contrib/sse"
   packages = ["."]
   revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
@@ -124,6 +130,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bab6650a7d27d5a9ee72d8e434ece59308ae7a51a0986911b48eb15cbc1d95de"
+  inputs-digest = "315843bbd4512acc20a5b5cfe10db93547b1a17ecd63769f90ed85f00220b9b3"
   solver-name = "gps-cdcl"
   solver-version = 1

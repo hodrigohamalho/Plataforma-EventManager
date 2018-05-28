@@ -3,8 +3,8 @@ package sdk
 import (
 	"fmt"
 
-	"github.com/ONSBR/Plataforma-EventManager/clients/http"
 	"github.com/ONSBR/Plataforma-EventManager/infra"
+	"github.com/PMoneda/http"
 )
 
 func getProcessMemoryUrl() string {

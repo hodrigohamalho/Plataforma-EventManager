@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/Jeffail/gabs"
-	"github.com/ONSBR/Plataforma-EventManager/clients/http"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/infra"
+	"github.com/PMoneda/http"
 	log "github.com/sirupsen/logrus"
 )
 

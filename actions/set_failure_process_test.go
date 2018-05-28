@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ONSBR/Plataforma-EventManager/clients/http"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
+	"github.com/PMoneda/http"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

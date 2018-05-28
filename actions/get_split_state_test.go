@@ -5,7 +5,7 @@ import (
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 
-	"github.com/ONSBR/Plataforma-EventManager/clients/http"
+	"github.com/PMoneda/http"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
