@@ -2,6 +2,7 @@ package eventstore
 
 import (
 	"testing"
+	"time"
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	. "github.com/smartystreets/goconvey/convey"
@@ -79,10 +80,31 @@ func TestShouldCountEventsInflux(t *testing.T) {
 		createRetentionPolicy("teste", "teste")
 		pushEvents(5, "evt1", "a", "gol1")
 		pushEvents(15, "evt2", "b", "gol1")
-		if totalEventsByField("name", "evt1", "1h") != 5 {
+		if Count("name", "evt1", "1h") != 5 {
 			t.Fail()
 		}
-		if len(queryEvents("name", "evt1", "1h")) != 5 {
+		if len(Query("name", "evt1", "1h")) != 5 {
+			t.Fail()
+		}
+		executeStatement(`DROP DATABASE "teste"`)
+	})
+
+}
+
+func TestShouldInstallInflux(t *testing.T) {
+
+	Convey("Should count events in influx", t, func() {
+		Install()
+		i := 10
+		ok := false
+		for i >= 0 {
+			ok = len(showDatabases()) > 0
+			if ok {
+				break
+			}
+			time.Sleep(1 * time.Second)
+		}
+		if !ok {
 			t.Fail()
 		}
 		executeStatement(`DROP DATABASE "teste"`)
@@ -104,6 +126,6 @@ func pushEvents(n int, name, owner, appOrigin string) {
 				"destiny": "2",
 			},
 		}
-		influxPush(e)
+		Push(e)
 	}
 }

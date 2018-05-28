@@ -49,7 +49,6 @@ func queryEvents(field, value, last string) []domain.Event {
 	s, _ := executeStatement(q)
 	r := QueryResult{}
 	if err := json.Unmarshal([]byte(s), &r); err != nil {
-		fmt.Println(err)
 		return []domain.Event{}
 	}
 	if len(r.Results) > 0 && len(r.Results[0].Series) > 0 {
@@ -77,7 +76,6 @@ func totalEventsByField(field, value, last string) int {
 	s, _ := executeStatement(q)
 	r := QueryResult{}
 	if err := json.Unmarshal([]byte(s), &r); err != nil {
-		fmt.Println(err)
 		return 0
 	}
 	if len(r.Results) > 0 && len(r.Results[0].Series) > 0 {
@@ -85,8 +83,6 @@ func totalEventsByField(field, value, last string) int {
 		switch v := c.(type) {
 		case float64:
 			return int(v)
-		case int:
-			return v
 		default:
 			return 0
 		}

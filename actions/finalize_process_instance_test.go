@@ -11,23 +11,24 @@ import (
 )
 
 func TestShouldFinalizeProcessInstance(t *testing.T) {
-	Convey("Should finalize process on apicore", t, func() {
+	Convey("should finalize process on apicore", t, func() {
 		mock := http.ReponseMock{
 			Method: "POST",
 			URL:    "*",
 		}
-		http.RegisterMock(&mock)
-		event := domain.NewEvent()
-		event.Name = "test"
-		event.Payload["instance_id"] = "1"
-		FinalizeProcessInstance(event)
-		if !strings.Contains(mock.RequestBody(), `"status":"finished"`) {
-			t.Fail()
-		}
+		http.With(func(ctx *http.MockContext) {
+			ctx.RegisterMock(&mock)
+			event := domain.NewEvent()
+			event.Name = "test"
+			event.Payload["instance_id"] = "1"
+			FinalizeProcessInstance(event)
+			if !strings.Contains(mock.RequestBody(), `"status":"finished"`) {
+				t.Fail()
+			}
 
-		if mock.CalledTimes() == 0 {
-			t.Fail()
-		}
-
+			if mock.CalledTimes() == 0 {
+				t.Fail()
+			}
+		})
 	})
 }

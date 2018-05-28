@@ -10,18 +10,18 @@ import (
 )
 
 func TestShouldPushEventToEventStore(t *testing.T) {
-	Convey("Should push event to event store", t, func() {
+	Convey("should push event to event store", t, func() {
 		mock := http.ReponseMock{
 			Method: "POST",
 			URL:    "*",
 		}
-		http.RegisterMock(&mock)
-		event := domain.NewEvent()
-		PushEventToEventStore(event)
-
-		if mock.CalledTimes() == 0 {
-			t.Fail()
-		}
-
+		http.With(func(ctx *http.MockContext) {
+			ctx.RegisterMock(&mock)
+			event := domain.NewEvent()
+			PushEventToEventStore(event)
+			if mock.CalledTimes() == 0 {
+				t.Fail()
+			}
+		})
 	})
 }
