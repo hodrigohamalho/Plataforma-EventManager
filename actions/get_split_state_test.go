@@ -40,13 +40,8 @@ func TestShouldGetSplitState(t *testing.T) {
 				Tag: "f56cfca7-6282-11e8-8808-0242ac12000c",
 			}
 			splitState, err := GetSplitState(&evt)
-			if err != nil {
-				t.Fail()
-			}
-
-			if !splitState.IsComplete() {
-				t.Fail()
-			}
+			So(err, ShouldBeNil)
+			So(splitState.IsComplete(), ShouldBeTrue)
 		})
 
 	})
@@ -82,9 +77,7 @@ func TestShouldReturnErrorWhenContractIsNotValid(t *testing.T) {
 				Tag: "f56cfca7-6282-11e8-8808-0242ac12000c",
 			}
 			_, err := GetSplitState(&evt)
-			if err == nil {
-				t.Fail()
-			}
+			So(err, ShouldNotBeNil)
 		})
 
 	})
@@ -103,9 +96,8 @@ func TestShouldNotFindSplitState(t *testing.T) {
 				Tag: "f56cfca7-6282-11e8-8808-0242ac12000c",
 			}
 			_, err := GetSplitState(&evt)
-			if err == nil {
-				ctx.Fail()
-			}
+			So(err, ShouldNotBeNil)
+
 		})
 	})
 }
@@ -123,9 +115,7 @@ func TestShouldReturnError(t *testing.T) {
 				Tag: "f56cfca7-6282-11e8-8808-0242ac12000c",
 			}
 			_, err := GetSplitState(&evt)
-			if err == nil {
-				ctx.Fail()
-			}
+			So(err, ShouldNotBeNil)
 		})
 	})
 }

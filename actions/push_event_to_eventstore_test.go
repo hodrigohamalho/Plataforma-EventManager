@@ -19,9 +19,7 @@ func TestShouldPushEventToEventStore(t *testing.T) {
 			ctx.RegisterMock(&mock)
 			event := domain.NewEvent()
 			PushEventToEventStore(event)
-			if mock.CalledTimes() == 0 {
-				t.Fail()
-			}
+			So(mock.CalledTimes(), ShouldBeGreaterThan, 0)
 		})
 	})
 }

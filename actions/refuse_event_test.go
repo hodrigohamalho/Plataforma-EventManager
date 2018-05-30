@@ -11,9 +11,7 @@ func TestShouldRefuseEvent(t *testing.T) {
 	Convey("should refuse event when has no binding", t, func() {
 		event := domain.NewEvent()
 		refused, _ := RefuseEvent(event)
-		if !refused {
-			t.Fail()
-		}
+		So(refused, ShouldBeTrue)
 	})
 
 	Convey("should not refuse when event is a system event", t, func() {
@@ -21,9 +19,7 @@ func TestShouldRefuseEvent(t *testing.T) {
 			evt := domain.NewEvent()
 			evt.Name = sysEventName
 			refused, _ := RefuseEvent(evt)
-			if refused {
-				t.Fail()
-			}
+			So(refused, ShouldBeFalse)
 		}
 	})
 
@@ -31,8 +27,7 @@ func TestShouldRefuseEvent(t *testing.T) {
 		evt := domain.NewEvent()
 		evt.Bindings = make([]*domain.Operation, 1)
 		refused, _ := RefuseEvent(evt)
-		if refused {
-			t.Fail()
-		}
+		So(refused, ShouldBeFalse)
+
 	})
 }

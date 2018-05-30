@@ -9,28 +9,24 @@ import (
 )
 
 func TestShouldShowDatabase(t *testing.T) {
-	Convey("Should show databases", t, func() {
+	Convey("should show databases", t, func() {
 		dbs := showDatabases()
-		if len(dbs) == 0 {
-			t.Fail()
-		}
+		So(len(dbs), ShouldBeGreaterThan, 0)
 	})
 
 }
 
 func TestShouldCreateDatabaseWhenNotExist(t *testing.T) {
-	Convey("Should create database when not exist", t, func() {
+	Convey("should create database when not exist", t, func() {
 		createDatabase("test_db")
-		if shouldCreateDatabase("test_db") {
-			t.Fail()
-		}
+		So(shouldCreateDatabase("test_db"), ShouldBeFalse)
 		executeStatement(`DROP DATABASE "test_db"`)
 	})
 
 }
 
 func TestShouldCreateRetentionPolicy(t *testing.T) {
-	Convey("Should create retention policy", t, func() {
+	Convey("should create retention policy", t, func() {
 		createDatabase("test_ret")
 		createRetentionPolicy("t_retention", "test_ret")
 		policies := showRetentionPolicy("test_ret")
@@ -50,7 +46,7 @@ func TestShouldCreateRetentionPolicy(t *testing.T) {
 }
 
 func TestShouldPushEventToInflux(t *testing.T) {
-	Convey("Should push event to influx", t, func() {
+	Convey("should push event to influx", t, func() {
 		createDatabase("teste")
 		createRetentionPolicy("teste", "teste")
 		e := domain.Event{
@@ -66,26 +62,20 @@ func TestShouldPushEventToInflux(t *testing.T) {
 			},
 		}
 		err := influxPush(e)
-		if err != nil {
-			t.Fatal(err)
-		}
+		So(err, ShouldBeNil)
 	})
 
 }
 
 func TestShouldCountEventsInflux(t *testing.T) {
 
-	Convey("Should count events in influx", t, func() {
+	Convey("should count events in influx", t, func() {
 		createDatabase("teste")
 		createRetentionPolicy("teste", "teste")
 		pushEvents(5, "evt1", "a", "gol1")
 		pushEvents(15, "evt2", "b", "gol1")
-		if Count("name", "evt1", "1h") != 5 {
-			t.Fail()
-		}
-		if len(Query("name", "evt1", "1h")) != 5 {
-			t.Fail()
-		}
+		So(Count("name", "evt1", "1h"), ShouldEqual, 5)
+		So(len(Query("name", "evt1", "1h")), ShouldEqual, 5)
 		executeStatement(`DROP DATABASE "teste"`)
 	})
 
@@ -93,7 +83,7 @@ func TestShouldCountEventsInflux(t *testing.T) {
 
 func TestShouldInstallInflux(t *testing.T) {
 
-	Convey("Should count events in influx", t, func() {
+	Convey("should count events in influx", t, func() {
 		Install()
 		i := 10
 		ok := false
@@ -104,9 +94,7 @@ func TestShouldInstallInflux(t *testing.T) {
 			}
 			time.Sleep(1 * time.Second)
 		}
-		if !ok {
-			t.Fail()
-		}
+		So(ok, ShouldBeTrue)
 		executeStatement(`DROP DATABASE "teste"`)
 	})
 

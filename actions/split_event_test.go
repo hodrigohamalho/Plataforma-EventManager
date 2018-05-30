@@ -26,13 +26,8 @@ func TestShouldSplitEvents(t *testing.T) {
 			event.Scope = "execution"
 			event.Bindings = append(event.Bindings, &domain.Operation{Reprocessable: true})
 			evts, err := SplitEvent(event)
-			if err != nil {
-				t.Fail()
-			}
-
-			if len(evts) != 3 {
-				t.Fail()
-			}
+			So(err, ShouldBeNil)
+			So(len(evts), ShouldEqual, 3)
 		})
 
 	})
@@ -46,12 +41,8 @@ func TestShouldSplitEvents(t *testing.T) {
 			})
 			event := domain.NewEvent()
 			evts, err := SplitEvent(event)
-			if err != nil {
-				t.Fail()
-			}
-			if len(evts) != 1 {
-				t.Fail()
-			}
+			So(err, ShouldBeNil)
+			So(len(evts), ShouldEqual, 1)
 		})
 
 	})
@@ -68,12 +59,8 @@ func TestShouldSplitEvents(t *testing.T) {
 			event.Scope = "execution"
 			event.Bindings = append(event.Bindings, &domain.Operation{Reprocessable: true})
 			evts, err := SplitEvent(event)
-			if err == nil {
-				t.Fail()
-			}
-			if len(evts) != 0 {
-				t.Fail()
-			}
+			So(err, ShouldNotBeNil)
+			So(len(evts), ShouldEqual, 0)
 		})
 
 	})

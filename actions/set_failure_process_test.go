@@ -21,13 +21,8 @@ func TestShouldSetFailureProcess(t *testing.T) {
 			event.Name = "test"
 			event.Payload["instance_id"] = "1"
 			SetFailureProcess(event)
-			if !strings.Contains(mock.RequestBody(), `"status":"failure"`) {
-				t.Fail()
-			}
-
-			if mock.CalledTimes() == 0 {
-				t.Fail()
-			}
+			So(strings.Contains(mock.RequestBody(), `"status":"failure"`), ShouldBeTrue)
+			So(mock.CalledTimes(), ShouldBeGreaterThan, 0)
 		})
 	})
 }

@@ -21,17 +21,12 @@ func TestShouldSaveSplitState(t *testing.T) {
 			events[0].Bindings = append(events[0].Bindings, new(domain.Operation))
 
 			err := SaveSplitState(events)
-			if err != nil {
-				t.Fail()
-			}
+			So(err, ShouldBeNil)
 		})
 	})
 
 	Convey("should return error when event list is empty", t, func() {
-
 		err := SaveSplitState(make([]*domain.Event, 0))
-		if err == nil {
-			t.Fail()
-		}
+		So(err, ShouldNotBeNil)
 	})
 }

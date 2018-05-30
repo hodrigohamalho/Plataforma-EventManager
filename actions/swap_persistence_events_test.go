@@ -15,18 +15,12 @@ func TestShouldSwapEvents(t *testing.T) {
 		dispatcher := new(bus.DispatcherMock)
 
 		dispatcher.OnSwap = func(from, to string) error {
-			if from != bus.EventPersistQueue {
-				t.Fail()
-			}
-			if to != "executor.store" {
-				t.Fail()
-			}
+			So(from, ShouldEqual, bus.EventPersistQueue)
+			So(to, ShouldEqual, "executor.store")
 			return nil
 		}
 		dispatcher.OnPop = func(queue string) (*domain.Event, error) {
-			if bus.EventPersistRequestQueue != queue {
-				t.Fail()
-			}
+			So(bus.EventPersistRequestQueue, ShouldEqual, queue)
 			return domain.NewEvent(), nil
 		}
 		SwapPersistEventToExecutorQueue(dispatcher)
@@ -38,10 +32,7 @@ func TestShouldSwapEvents(t *testing.T) {
 		dispatcher.OnSwap = func(from, to string) error {
 			return errors.New("error")
 		}
-
 		err := SwapPersistEventToExecutorQueue(dispatcher)
-		if err == nil {
-			t.Fail()
-		}
+		So(err, ShouldNotBeNil)
 	})
 }

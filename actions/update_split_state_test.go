@@ -17,11 +17,7 @@ func TestShouldUpdateSplitState(t *testing.T) {
 		state.EventOut = "name"
 		spState.AddEventState(state)
 		err := UpdateSplitState(evt, spState, "success")
-		if err != nil {
-			t.Fail()
-		}
-		if spState.Events[0].Status != "success" {
-			t.Fail()
-		}
+		So(err, ShouldBeNil)
+		So(spState.Events[0].Status, ShouldEqual, "success")
 	})
 }

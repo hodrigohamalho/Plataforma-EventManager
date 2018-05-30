@@ -22,13 +22,10 @@ func TestShouldFinalizeProcessInstance(t *testing.T) {
 			event.Name = "test"
 			event.Payload["instance_id"] = "1"
 			FinalizeProcessInstance(event)
-			if !strings.Contains(mock.RequestBody(), `"status":"finished"`) {
-				t.Fail()
-			}
 
-			if mock.CalledTimes() == 0 {
-				t.Fail()
-			}
+			So(strings.Contains(mock.RequestBody(), `"status":"finished"`), ShouldBeTrue)
+			So(mock.CalledTimes(), ShouldBeGreaterThan, 0)
+
 		})
 	})
 }

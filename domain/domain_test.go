@@ -16,55 +16,34 @@ func pickEvent() *Event {
 
 func TestShouldConvertEventToEventState(t *testing.T) {
 	event := pickEvent()
-	Convey("Should get event state from domain event", t, func() {
+	Convey("should get event state from domain event", t, func() {
 		state := event.ToEventState()
-		if state.Branch != event.Branch {
-			t.Fail()
-		}
-		if state.Name != event.Name {
-			t.Fail()
-		}
-		if state.Scope != event.Scope {
-			t.Fail()
-		}
-		if state.Status != Pending {
-			t.Fail()
-		}
-
+		So(state.Branch, ShouldEqual, event.Branch)
+		So(state.Name, ShouldEqual, event.Name)
+		So(state.Scope, ShouldEqual, event.Scope)
+		So(state.Status, ShouldEqual, Pending)
 	})
 }
 
 func TestShouldTransformEventToCeleryMessage(t *testing.T) {
-	Convey("Should transform domain evento to a celery task", t, func() {
+	Convey("should transform domain evento to a celery task", t, func() {
 		event := pickEvent()
 		celeryMessage := event.ToCeleryMessage()
-		if celeryMessage.Task != "tasks.process" {
-			t.Fail()
-		}
-		if len(celeryMessage.Args) == 0 {
-			t.Fail()
-		}
+		So(celeryMessage.Task, ShouldEqual, "tasks.process")
+		So(len(celeryMessage.Args), ShouldEqual, 1)
 	})
 }
 
 func TestShouldVerifyIfEventIsAnEndingEvent(t *testing.T) {
-	Convey("Should assert that events ending with .done, .error and .exception is an ending event", t, func() {
+	Convey("should assert that events ending with .done, .error and .exception is an ending event", t, func() {
 		event := pickEvent()
-		if event.IsEndingEvent() {
-			t.Fail()
-		}
+		So(event.IsEndingEvent(), ShouldBeFalse)
 		event.Name = "a.done"
-		if !event.IsEndingEvent() {
-			t.Fail()
-		}
+		So(event.IsEndingEvent(), ShouldBeTrue)
 		event.Name = "a.error"
-		if !event.IsEndingEvent() {
-			t.Fail()
-		}
+		So(event.IsEndingEvent(), ShouldBeTrue)
 		event.Name = "a.exception"
-		if !event.IsEndingEvent() {
-			t.Fail()
-		}
+		So(event.IsEndingEvent(), ShouldBeTrue)
 	})
 }
 
@@ -72,31 +51,20 @@ func TestShouldTestEventScope(t *testing.T) {
 	Convey("should verify if an event is a reprocessing", t, func() {
 		event := pickEvent()
 		event.Scope = "reprocessing"
-		if !event.IsReprocessing() {
-			t.Fail()
-		}
+		So(event.IsReprocessing(), ShouldBeTrue)
 	})
 
 	Convey("should verify if an event is a execution", t, func() {
 		event := pickEvent()
-		if !event.IsExecution() {
-			t.Fail()
-		}
-
+		So(event.IsExecution(), ShouldBeTrue)
 		event.Scope = "execution"
-
-		if !event.IsExecution() {
-			t.Fail()
-		}
-
+		So(event.IsExecution(), ShouldBeTrue)
 	})
 
 	Convey("should verify if an event is a reproduction", t, func() {
 		event := pickEvent()
 		event.Scope = "reproduction"
-		if !event.IsReproduction() {
-			t.Fail()
-		}
+		So(event.IsReproduction(), ShouldBeTrue)
 	})
 }
 
@@ -104,18 +72,9 @@ func TestShouldApplyDefaultFields(t *testing.T) {
 	Convey("should apply default fields in event", t, func() {
 		event := NewEvent()
 		event.ApplyDefaultFields()
-
-		if event.Scope != "execution" {
-			t.Fail()
-		}
-
-		if event.Branch != "master" {
-			t.Fail()
-		}
-
-		if event.Tag == "" {
-			t.Fail()
-		}
+		So(event.Scope, ShouldEqual, "execution")
+		So(event.Branch, ShouldEqual, "master")
+		So(event.Tag, ShouldNotEqual, "")
 	})
 }
 
@@ -124,15 +83,11 @@ func TestShouldCheckIfEventIsSystemEvent(t *testing.T) {
 		for _, e := range SystemEvents {
 			evt := NewEvent()
 			evt.Name = e
-			if !evt.IsSystemEvent() {
-				t.Fail()
-			}
+			So(evt.IsSystemEvent(), ShouldBeTrue)
 		}
 
 		evt := NewEvent()
 		evt.Name = "test"
-		if evt.IsSystemEvent() {
-			t.Fail()
-		}
+		So(evt.IsSystemEvent(), ShouldBeFalse)
 	})
 }
