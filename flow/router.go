@@ -37,6 +37,7 @@ func GetEventRouter() *processor.Processor {
 	p.When("*.error", handlers.HandleExceptionEvent)
 	p.When("*.done", handlers.HandleDoneEvent)
 	p.When("system.process.persist.error", handlers.HandlePersistenceErrorEvent)
+	p.When("system.*", handlers.HandleSystemEvent)
 	p.When("*", handlers.HandleGeneralEvent)
 	return p
 }
