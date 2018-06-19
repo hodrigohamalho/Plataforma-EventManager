@@ -14,6 +14,7 @@ var SystemEvents = []string{
 	"system.process.persist.error",
 	"system.events.reprocessing.request",
 	"system.events.reproduction.request",
+	"system.deploy.finished",
 }
 
 //Event define a basic platform event contract
