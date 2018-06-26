@@ -15,9 +15,11 @@ func HandleDoneEvent(c *processor.Context) error {
 	log.Debug(fmt.Sprintf("HandleDoneEvent %s on branch %s", c.Event.Name, c.Event.Branch))
 	splitState, err := actions.GetSplitState(c.Event)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 	if err := actions.UpdateSplitState(c.Event, splitState, domain.Success); err != nil {
+		log.Error(err)
 		return err
 	}
 	if splitState.IsComplete() {
