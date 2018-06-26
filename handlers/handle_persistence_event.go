@@ -14,8 +14,7 @@ func HandlePersistenceEvent(c *processor.Context) error {
 	log.Debug(fmt.Sprintf("HandlePersistenceEvent %s on branch %s", c.Event.Name, c.Event.Branch))
 	_, err := c.Dispatcher().First(bus.EventPersistRequestQueue)
 	if err != nil && err.Error() == infra.PersistEventQueueEmpty {
-		c.Publish("store.executor.inexecution", c.Event)
-		return nil
+		return c.Publish("store.executor.inexecution", c.Event)
 	} else if err != nil {
 		log.Error(err.Error())
 		return err
