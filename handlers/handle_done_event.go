@@ -11,12 +11,12 @@ import (
 
 //HandleDoneEvent handle done event to control execution flow
 func HandleDoneEvent(c *processor.Context) error {
+	log.Debug(fmt.Sprintf("HandleDoneEvent %s on branch %s", c.Event.Name, c.Event.Branch))
 	err := actions.SwapPersistEventToExecutorQueue(c.Dispatcher())
 	if err != nil {
 		log.Error(err)
 		return err
 	}
-	log.Debug(fmt.Sprintf("HandleDoneEvent %s on branch %s", c.Event.Name, c.Event.Branch))
 	splitState, err := actions.GetSplitState(c.Event)
 	if err != nil {
 		log.Error(err)

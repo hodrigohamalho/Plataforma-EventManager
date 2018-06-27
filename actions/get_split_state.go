@@ -20,7 +20,7 @@ func GetSplitState(event *domain.Event) (*domain.SplitState, error) {
 	if err := json.Unmarshal([]byte(response), &splitState); err != nil {
 		return nil, infra.NewArgumentException(err.Error())
 	} else if len(splitState) == 0 {
-		return nil, infra.NewSystemException(fmt.Sprintf("splitted_events with tag %s form event %s not found", event.Tag, event.Name))
+		return nil, infra.NewSystemException(fmt.Sprintf("splitted_events with tag %s from event %s not found", event.Tag, event.Name))
 	}
 	return &splitState[0], nil
 }
