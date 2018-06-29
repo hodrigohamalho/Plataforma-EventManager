@@ -1,7 +1,6 @@
 package flow
 
 import (
-	"github.com/ONSBR/Plataforma-EventManager/actions"
 	"github.com/ONSBR/Plataforma-EventManager/handlers"
 	"github.com/ONSBR/Plataforma-EventManager/handlers/middlewares"
 	"github.com/ONSBR/Plataforma-EventManager/infra/factories"
@@ -31,7 +30,6 @@ func GetBasicEventRouter() *processor.Processor {
 //GetEventRouter return a configured event binding routes
 func GetEventRouter() *processor.Processor {
 	p := GetDefaultProcessor()
-	actions.SwapPersistEventToExecutorQueue(factories.GetDispatcher())
 	p.When("*.persist.request", handlers.HandlePersistenceEvent)
 	p.When("*.exception", handlers.HandleExceptionEvent)
 	p.When("*.error", handlers.HandleExceptionEvent)

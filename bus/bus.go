@@ -426,6 +426,10 @@ func (broker *Broker) runWorkers() error {
 				for event := range msgs {
 					celeryMessage := new(domain.CeleryMessage)
 					err = json.Unmarshal(event.Body, celeryMessage)
+					if len(celeryMessage.Args) == 0 {
+						event.Ack(false)
+						return
+					}
 					eventParsed := celeryMessage.Args[0]
 					if err != nil {
 						log.Error(err.Error())

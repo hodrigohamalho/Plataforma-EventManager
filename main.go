@@ -18,6 +18,7 @@ func init() {
 	os.Setenv("RETENTION_POLICY", "platform_events")
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.DebugLevel)
+
 }
 
 func registerActionsToRabbitMq() *bus.Broker {
