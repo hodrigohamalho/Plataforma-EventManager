@@ -30,8 +30,15 @@ type Event struct {
 	Scope        string                 `json:"scope,omitempty"`
 	Payload      map[string]interface{} `json:"payload,omitempty"`
 	Reproduction map[string]interface{} `json:"reproduction,omitempty"`
-	Reprocessing map[string]interface{} `json:"reprocessing,omitempty"`
+	Reprocessing *ReprocessingInfo      `json:"reprocessing,omitempty"`
 	Bindings     []*Operation           `json:"-"`
+}
+
+//ReprocessingInfo store all reprocessing information on event
+type ReprocessingInfo struct {
+	ID         string `json:"id,omitempty"`
+	InstanceID string `json:"instance_id,omitempty"`
+	Image      string `json:"image,omitempty"`
 }
 
 //NewEvent creates a new Event Instance
