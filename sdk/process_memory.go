@@ -16,7 +16,7 @@ func getProcessMemoryUrl() string {
 
 //SaveDocument to process memory
 func SaveDocument(collection string, data interface{}) (err error) {
-	url := fmt.Sprintf("%s/%s?app_origin=event_manager", getProcessMemoryUrl(), collection)
+	url := fmt.Sprintf("%s%s?app_origin=event_manager", getProcessMemoryUrl(), collection)
 	_, err = http.Post(url, data)
 	return
 }
@@ -27,7 +27,7 @@ func GetDocument(collection string, query map[string]string) (string, error) {
 	for k, v := range query {
 		queryString += fmt.Sprintf("%s=%s&", k, v)
 	}
-	url := fmt.Sprintf("%s/%s?%sapp_origin=event_manager", getProcessMemoryUrl(), collection, queryString)
+	url := fmt.Sprintf("%s%s?%sapp_origin=event_manager", getProcessMemoryUrl(), collection, queryString)
 	return http.Get(url)
 }
 
