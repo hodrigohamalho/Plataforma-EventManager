@@ -11,6 +11,7 @@ func EnrichEvent(c *processor.Context) (err error) {
 	c.Event.Bindings, err = sdk.EventBindings(c.Event.Name)
 	if err == nil && len(c.Event.Bindings) > 0 {
 		c.Event.SystemID = c.Event.Bindings[0].SystemID
+		c.Event.Version = c.Event.Bindings[0].Version
 	}
 	return
 }

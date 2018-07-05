@@ -113,12 +113,18 @@ func showDatabases() []string {
 func executeStatement(stmt string) (string, error) {
 	_url := fmt.Sprintf("%s/query?u=%s&p=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""))
 	payload := url.PathEscape(fmt.Sprintf("q=%s", stmt))
-	return http.Post(_url, payload, http.Header{Key: "Content-Type", Value: "application/x-www-form-urlencoded"})
-
+	response, err := http.Post(_url, payload, http.Header{Key: "Content-Type", Value: "application/x-www-form-urlencoded"})
+	if err != nil {
+		return "", err
+	}
+	return string(response.Body), nil
 }
 
 func influxWrite(point string) (string, error) {
 	_url := fmt.Sprintf("%s/write?u=%s&p=%s&db=%s&rp=%s", getBaseUrl(), infra.GetEnv("INFLUX_USER", ""), infra.GetEnv("INFLUX_PASSWORD", ""), infra.GetEnv("DATABASE", "teste"), infra.GetEnv("RETENTION_POLICY", "teste"))
-	return http.Post(_url, point)
-
+	response, err := http.Post(_url, point)
+	if err != nil {
+		return "", err
+	}
+	return string(response.Body), nil
 }

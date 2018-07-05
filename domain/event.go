@@ -23,6 +23,8 @@ type Event struct {
 	Branch       string                 `json:"branch"`
 	SystemID     string                 `json:"systemId,omitempty"`
 	Name         string                 `json:"name,omitempty"`
+	Version      string                 `json:"version,omitempty"`
+	Image        string                 `json:"image,omitempty"`
 	Tag          string                 `json:"tag"`
 	AppOrigin    string                 `json:"appOrigin,omitempty"`
 	Owner        string                 `json:"owner,omitempty"`
@@ -38,6 +40,7 @@ type Event struct {
 type ReprocessingInfo struct {
 	ID         string `json:"id,omitempty"`
 	InstanceID string `json:"instance_id,omitempty"`
+	SystemID   string `json:"system_id,omitempty"`
 	Image      string `json:"image,omitempty"`
 }
 
