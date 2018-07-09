@@ -1,6 +1,6 @@
 # Gopkg.toml example
 #
-# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
 # for detailed Gopkg.toml documentation.
 #
 # required = ["github.com/user/thing/cmd/thing"]
@@ -23,16 +23,6 @@
 #   non-go = false
 #   go-tests = true
 #   unused-packages = true
-
-
-[[constraint]]
-  name = "github.com/Jeffail/gabs"
-  version = "1.0.0"
-
-[[constraint]]
-  name = "github.com/gin-gonic/gin"
-  version = "1.2.0"
-
 [[constraint]]
   name = "github.com/michaelklishin/rabbit-hole"
   branch = "feature/topic-permissions"
@@ -46,18 +36,10 @@
   branch = "master"
   name = "github.com/streadway/amqp"
 
-[prune]
-  go-tests = true
-  unused-packages = true
-
 [[constraint]]
   name = "github.com/smartystreets/goconvey"
   version = "1.6.3"
 
-[[constraint]]
-  branch = "master"
-  name = "github.com/PMoneda/http"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/PMoneda/carrot"
+[prune]
+  go-tests = true
+  unused-packages = true

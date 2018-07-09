@@ -6,7 +6,7 @@ import (
 	"github.com/ONSBR/Plataforma-EventManager/bus"
 )
 
-var broker *bus.Broker
+var broker bus.Dispatcher
 var once sync.Once
 
 //GetDispatcher build dispatcher component
@@ -18,7 +18,7 @@ func GetDispatcher() bus.Dispatcher {
 }
 
 //GetBroker build dispatcher component
-func GetBroker() *bus.Broker {
+func GetBroker() bus.Dispatcher {
 	once.Do(func() {
 		broker = bus.GetBroker()
 	})

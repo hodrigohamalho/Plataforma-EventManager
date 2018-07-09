@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
@@ -18,6 +19,7 @@ func registerCommandsAPI(r *gin.Engine) {
 		if err = c.BindJSON(event); err == nil {
 			begin := time.Now()
 			err = fullEventFlow.Push(event)
+			log.Info(fmt.Sprintf("event name %s branch %s scope %s", event.Name, event.Branch, event.Scope))
 			log.Info("Tempo total:", time.Now().Sub(begin))
 			if err == nil {
 				c.JSON(200, gin.H{

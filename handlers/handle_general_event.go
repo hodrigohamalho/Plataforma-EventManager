@@ -10,8 +10,8 @@ import (
 
 //HandleGeneralEvent handle general event
 func HandleGeneralEvent(c *processor.Context) error {
-	log.Debug(fmt.Sprintf("HandleGeneralEvent %s on branch %s", c.Event.Name, c.Event.Branch))
-	if c.Event.IsReproduction() {
+	log.Debug(fmt.Sprintf("HandleGeneralEvent %s on branch %s with scope %s", c.Event.Name, c.Event.Branch, c.Event.Scope))
+	if !c.Event.IsExecution() {
 		return c.Publish("store.executor", c.Event)
 	}
 	if events, err := actions.SplitEvent(c.Event); err != nil {

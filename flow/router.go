@@ -12,6 +12,7 @@ func GetDefaultProcessor() *processor.Processor {
 	p := processor.NewProcessor(factories.GetDispatcher())
 	p.Use("*", middlewares.EnrichEvent)
 	p.Use("*", middlewares.EventHasSubscribers)
+	p.Use("*", middlewares.Doorkeeper)
 	return p
 }
 

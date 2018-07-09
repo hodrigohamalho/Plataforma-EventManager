@@ -32,3 +32,7 @@ func (d *DispatcherMock) Pop(queue string) (*domain.Event, error) {
 func (d *DispatcherMock) First(queue string) (*domain.Event, error) {
 	return d.OnFirst(queue)
 }
+
+func (d *DispatcherMock) RegisterWorker(qtd int, qname string, callback func(event *domain.Event) error) error {
+	return nil
+}

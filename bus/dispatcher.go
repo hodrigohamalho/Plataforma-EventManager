@@ -15,4 +15,6 @@ type Dispatcher interface {
 	Pop(queue string) (*domain.Event, error)
 
 	First(queue string) (*domain.Event, error)
+
+	RegisterWorker(qtd int, qname string, callback func(event *domain.Event) error) error
 }
