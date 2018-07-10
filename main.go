@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"os"
@@ -17,6 +18,7 @@ import (
 var local bool
 
 func init() {
+	gob.Register(map[string]interface{}{})
 	flag.BoolVar(&local, "local", false, "to run service with local rabbitmq and services")
 	os.Setenv("DATABASE", "event_manager")
 	os.Setenv("RETENTION_POLICY", "platform_events")

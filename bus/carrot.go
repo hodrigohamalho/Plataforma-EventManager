@@ -193,6 +193,7 @@ func Init() {
 	builder.UpdateTopicPermission(config.Username, exchangeName)
 	builder.UpdateTopicPermission(config.Username, exchangeName+"_error")
 	DeclareQueue(exchangeName, EventProcessFinishedQueue, "#.finished.#")
+	DeclareQueue(exchangeName, eventExecutorQueue+"_backup", "#.executor.#")
 	DeclareQueue(exchangeName, eventExecutorQueue, "#.executor.#")
 	DeclareQueue(exchangeName, EventPersistQueue, "#.persist.#")
 	DeclareQueue(exchangeName, EventExceptionQueue, "#.exception.#")

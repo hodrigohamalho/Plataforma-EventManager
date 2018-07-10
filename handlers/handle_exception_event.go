@@ -12,7 +12,6 @@ import (
 //HandleExceptionEvent handle exception events
 func HandleExceptionEvent(c *processor.Context) error {
 	log.Debug(fmt.Sprintf("HandleExceptionEvent %s on branch %s", c.Event.Name, c.Event.Branch))
-	err := actions.SwapPersistEventToExecutorQueue(c.Dispatcher())
 	splitState, err := actions.GetSplitState(c.Event)
 	if err != nil {
 		return err
