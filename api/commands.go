@@ -19,7 +19,7 @@ func registerCommandsAPI(r *gin.Engine) {
 			})
 		} else if err := fullEventFlow.Push(event); err != nil {
 			log.Error(err.Error())
-			c.JSON(500, err)
+			c.JSON(200, err)
 		} else {
 			c.JSON(200, gin.H{
 				"message": "OK",
@@ -35,7 +35,7 @@ func registerCommandsAPI(r *gin.Engine) {
 			})
 		} else if err := storeEventFlow.Push(event); err != nil {
 			log.Error(err.Error())
-			c.JSON(400, err)
+			c.JSON(200, err)
 		} else {
 			c.JSON(200, gin.H{
 				"message": "OK",
