@@ -37,7 +37,7 @@ func ReplaceDocument(collection string, query map[string]string, document interf
 	for k, v := range query {
 		queryString += fmt.Sprintf("%s=%s&", k, v)
 	}
-	url := fmt.Sprintf("%s/%s?%sapp_origin=event_manager", getProcessMemoryUrl(), collection, queryString)
+	url := fmt.Sprintf("%s%s?%sapp_origin=event_manager", getProcessMemoryUrl(), collection, queryString)
 	_, err := http.Put(url, document)
 	return err
 }
