@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/gob"
+	"flag"
 	"fmt"
 	"os"
 
@@ -13,23 +15,35 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var local bool
+
 func init() {
+	gob.Register(map[string]interface{}{})
+	flag.BoolVar(&local, "local", false, "to run service with local rabbitmq and services")
 	os.Setenv("DATABASE", "event_manager")
 	os.Setenv("RETENTION_POLICY", "platform_events")
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.DebugLevel)
+
 }
 
-func registerActionsToRabbitMq() *bus.Broker {
+func registerActionsToRabbitMq() bus.Dispatcher {
 	broker := factories.GetBroker()
 	broker.RegisterWorker(1, bus.EventstoreQueue, actions.PushEventToEventStore)
 	broker.RegisterWorker(1, bus.EventProcessFinishedQueue, actions.FinalizeProcessInstance)
 	broker.RegisterWorker(1, bus.EventExceptionQueue, actions.SetFailureProcess)
-	broker.Listen()
 	return broker
 }
 
 func main() {
+	flag.Parse()
+	if local {
+		os.Setenv("RABBITMQ_HOST", "localhost")
+		os.Setenv("RABBITMQ_USERNAME", "guest")
+		os.Setenv("RABBITMQ_PASSWORD", "guest")
+		os.Setenv("PORT", "8089")
+	}
+	bus.Init()
 	fmt.Println(logo())
 	log.Info("Starting Event Manager")
 	log.Info("Installing Bus")

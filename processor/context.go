@@ -17,6 +17,11 @@ func (c *Context) Publish(routingKey string, event *domain.Event) error {
 	return c.dispatcher.Publish(routingKey, event.ToCeleryMessage())
 }
 
+//PublishIn sends message to broker
+func (c *Context) PublishIn(exchange, routingKey string, event *domain.Event) error {
+	return c.dispatcher.PublishIn(exchange, routingKey, event.ToCeleryMessage())
+}
+
 //Dispatcher returns dispatcher from context
 func (c *Context) Dispatcher() bus.Dispatcher {
 	return c.dispatcher

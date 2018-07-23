@@ -8,6 +8,8 @@ import (
 type Dispatcher interface {
 	Publish(routingKey string, message interface{}) error
 
+	PublishIn(exchange, routingKey string, message interface{}) error
+
 	Get(queue string, action func(*domain.Event) error) error
 
 	Swap(queueFrom string, routingKey string) error
@@ -15,4 +17,6 @@ type Dispatcher interface {
 	Pop(queue string) (*domain.Event, error)
 
 	First(queue string) (*domain.Event, error)
+
+	RegisterWorker(qtd int, qname string, callback func(event *domain.Event) error) error
 }

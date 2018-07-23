@@ -25,12 +25,13 @@ func SplitEvent(event *domain.Event) ([]*domain.Event, error) {
 				return nil, err
 			}
 			command.Branch = branch.Name
+			command.Bindings = []*domain.Operation{operation}
 			commands = append(commands, command)
 		}
 	}
-	log.Info(fmt.Sprintf("Splitting event into %d commands", len(commands)))
+	log.Debug(fmt.Sprintf("Splitting event into %d commands", len(commands)))
 	for i, cmd := range commands {
-		log.Info(fmt.Sprintf("command %d: name: %s branch: %s", i+1, cmd.Name, cmd.Branch))
+		log.Debug(fmt.Sprintf("command %d: name: %s branch: %s scope: %s", i+1, cmd.Name, cmd.Branch, cmd.Scope))
 	}
 	return commands, nil
 }

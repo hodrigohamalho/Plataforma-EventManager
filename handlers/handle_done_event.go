@@ -12,11 +12,13 @@ import (
 //HandleDoneEvent handle done event to control execution flow
 func HandleDoneEvent(c *processor.Context) error {
 	log.Debug(fmt.Sprintf("HandleDoneEvent %s on branch %s", c.Event.Name, c.Event.Branch))
-	err := actions.SwapPersistEventToExecutorQueue(c.Dispatcher())
-	if err != nil {
-		log.Error(err)
-		return err
+	if c.Event.IsExecution() {
+		return handleExecutionDone(c)
 	}
+	return c.Publish("store.executor.finished", c.Event)
+}
+
+func handleExecutionDone(c *processor.Context) error {
 	splitState, err := actions.GetSplitState(c.Event)
 	if err != nil {
 		log.Error(err)
@@ -27,9 +29,9 @@ func HandleDoneEvent(c *processor.Context) error {
 		return err
 	}
 	if splitState.IsComplete() {
-		log.Info("Dispatching done event")
+		//log.Debug("Dispatching done event")
 		return c.Publish("store.executor.finished", c.Event)
 	}
-	log.Info(fmt.Sprintf("Supressing event %s on branch %s", c.Event.Name, c.Event.Branch))
+	//log.Debug(fmt.Sprintf("Supressing event %s on branch %s", c.Event.Name, c.Event.Branch))
 	return c.Publish("store", c.Event)
 }
