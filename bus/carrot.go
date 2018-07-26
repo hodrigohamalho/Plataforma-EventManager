@@ -143,7 +143,11 @@ func (broker *CarrotBroker) RegisterWorker(qtd int, qname string, callback func(
 			}
 			if err := callback(&celery.Args[0]); err != nil {
 				log.Error(err)
-				context.Nack(true)
+				err := context.RedirectTo(exchangeName+"_error", "#.exception.#")
+				if err != nil {
+					return context.Nack(true)
+				}
+				return context.Ack()
 			} else {
 				context.Ack()
 			}

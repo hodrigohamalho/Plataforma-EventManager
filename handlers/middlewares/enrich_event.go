@@ -9,10 +9,17 @@ import (
 //EnrichEvent get event bindings on event store
 func EnrichEvent(c *processor.Context) (err error) {
 	c.Event.ApplyDefaultFields()
-	c.Event.Bindings, err = sdk.EventBindings(c.Event.Name)
-	if err == nil && len(c.Event.Bindings) > 0 {
-		c.Event.SystemID = c.Event.Bindings[0].SystemID
-		c.Event.Version = c.Event.Bindings[0].Version
+	if c.Event.Version == "" {
+		c.Event.Bindings, err = sdk.EventBindings(c.Event.Name)
+		if err == nil && len(c.Event.Bindings) > 0 {
+			c.Event.SystemID = c.Event.Bindings[0].SystemID
+			c.Event.Version = c.Event.Bindings[0].Version
+		}
+	} else {
+		c.Event.Bindings, err = sdk.EventBindingsByVersion(c.Event.Name, c.Event.Version)
+		if err != nil {
+			return err
+		}
 	}
 	if c.Event.IdempotencyKey != "" {
 		return
