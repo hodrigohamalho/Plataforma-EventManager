@@ -10,16 +10,24 @@ import (
 
 //FinalizeProcessInstance on ApiCore
 func FinalizeProcessInstance(event *domain.Event) (err error) {
-	switch id := event.Payload["instance_id"].(type) {
+	if event.Payload == nil {
+		err = fmt.Errorf("event payload is nil")
+		return
+	}
+	id, ok := event.Payload["instance_id"]
+	if !ok {
+		err = fmt.Errorf("payload has no instance_id")
+		return
+	}
+	switch i := id.(type) {
 	case string:
 		log.Debug(fmt.Sprintf("update process instance %s to finished from event %s", id, event.Name))
-		err = sdk.UpdateProcessInstance(id, "finished")
+		err = sdk.UpdateProcessInstance(i, "finished")
 		if err != nil {
 			log.Error(err)
 		}
 	default:
 		log.Error("instance_id is not valid")
 	}
-
 	return
 }
