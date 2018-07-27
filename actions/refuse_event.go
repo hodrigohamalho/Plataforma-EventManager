@@ -2,6 +2,7 @@ package actions
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/infra"
@@ -10,6 +11,12 @@ import (
 //RefuseEvent will refuse or not an event that did not have binding on platform
 func RefuseEvent(event *domain.Event) (bool, error) {
 	if event.IsSystemEvent() {
+		return false, nil
+	}
+	if strings.HasSuffix(event.Name, ".error") {
+		return false, nil
+	}
+	if strings.HasSuffix(event.Name, ".exception") {
 		return false, nil
 	}
 	if len(event.Bindings) == 0 {
