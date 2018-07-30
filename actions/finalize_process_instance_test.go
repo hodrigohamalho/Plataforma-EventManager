@@ -20,6 +20,7 @@ func TestShouldFinalizeProcessInstance(t *testing.T) {
 			ctx.RegisterMock(&mock)
 			event := domain.NewEvent()
 			event.Name = "test"
+			event.InstanceID = "1"
 			event.Payload["instance_id"] = "1"
 			FinalizeProcessInstance(event)
 

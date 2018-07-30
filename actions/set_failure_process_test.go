@@ -19,6 +19,7 @@ func TestShouldSetFailureProcess(t *testing.T) {
 			ctx.RegisterMock(&mock)
 			event := domain.NewEvent()
 			event.Name = "test"
+			event.InstanceID = "1"
 			event.Payload["instance_id"] = "1"
 			SetFailureProcess(event)
 			So(strings.Contains(mock.RequestBody(), `"status":"failure"`), ShouldBeTrue)
