@@ -17,7 +17,7 @@
   branch = "master"
   name = "github.com/PMoneda/carrot"
   packages = ["."]
-  revision = "b6022e96028ca3d415bd29d526ae50561e2675e3"
+  revision = "69181c029070ca7477a4cf80575382620f3e42fa"
 
 [[projects]]
   branch = "master"
@@ -146,6 +146,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b5ff92d166d456c20013798c4a3dd939b54fb6646651bed01a2100e6d08bc442"
+  inputs-digest = "b60ec675860ed855c8b46d95d15e502cb4ec56e273dbc7e733566b05a6a4468c"
   solver-name = "gps-cdcl"
   solver-version = 1
