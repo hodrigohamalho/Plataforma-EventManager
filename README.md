@@ -55,7 +55,7 @@ Cache-Control: no-cache
 6. flow
     * Este pacote tem o router de eventos dentro do event_manager para aonde cada eventos será roteado para ser melhor tratado;
 7. handlers
-    * São o handlers de eventos cada tipo de evento tem um handler associado e todos eles ficam nesse pacote;
+    * Cada tipo de evento tem um handler associado e todos eles ficam nesse pacote;
     * Neste pacote também contém o subpacote de middlewares de eventos;
 8. infra
     * É um pacote com rotinas que lidam com clone de objetos, variáveis de ambiente e fábrica de objetos
