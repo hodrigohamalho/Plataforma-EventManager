@@ -42,9 +42,7 @@ func registerCommandsAPI(r *gin.Engine) {
 			log.Error(err.Error())
 			c.JSON(200, err)
 		} else {
-			c.JSON(200, gin.H{
-				"message": "OK",
-			})
+			c.JSON(200, event)
 		}
 	})
 }
