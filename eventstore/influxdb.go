@@ -56,7 +56,7 @@ func compileEventToLintProtocol(event domain.Event) string {
 	if event.InstanceID == "" {
 		event.InstanceID = "new_instance"
 	}
-	cmd := fmt.Sprintf(`events,name=%s,scope=%s,tag=%s,branch=%s,instanceId=%s,class=%s,subclass=%s,owner=%s,appOrigin=%s count=1,data="%s"`, event.Name, event.Scope, event.Tag, event.Branch, event.InstanceID, eventClass, eventSubclass, event.Owner, event.AppOrigin, string(encoded))
+	cmd := fmt.Sprintf(`events,name=%s,scope=%s,tag=%s,branch=%s,instanceId=%s,class=%s,subclass=%s,owner=%s,appOrigin=%s count=1,data="%s"`, event.Name, event.Scope, event.Tag, strings.Replace(event.Branch, " ", "_", -1), event.InstanceID, eventClass, eventSubclass, event.Owner, event.AppOrigin, string(encoded))
 	return cmd
 }
 
