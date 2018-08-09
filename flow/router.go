@@ -1,10 +1,13 @@
 package flow
 
 import (
+	"github.com/ONSBR/Plataforma-EventManager/actions"
+	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/handlers"
 	"github.com/ONSBR/Plataforma-EventManager/handlers/middlewares"
 	"github.com/ONSBR/Plataforma-EventManager/infra/factories"
 	"github.com/ONSBR/Plataforma-EventManager/processor"
+	log "github.com/sirupsen/logrus"
 )
 
 //GetDefaultProcessor return a new processor with two middlewares pre configured
@@ -23,6 +26,10 @@ func GetBasicEventRouter() *processor.Processor {
 		return c.Publish("store.executor", c.Event)
 	})
 	p.When("*", func(c *processor.Context) error {
+		if err := actions.SaveSplitState([]*domain.Event{c.Event}); err != nil {
+			log.Error(err)
+			return err
+		}
 		return c.Publish("store", c.Event)
 	})
 	return p

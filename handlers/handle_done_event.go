@@ -22,10 +22,12 @@ func handleExecutionDone(c *processor.Context) error {
 	splitState, err := actions.GetSplitState(c.Event)
 	if err != nil {
 		log.Error(err)
+		c.Publish("store.executor.finished", c.Event)
 		return err
 	}
 	if err := actions.UpdateSplitState(c.Event, splitState, domain.Success); err != nil {
 		log.Error(err)
+		c.Publish("store.executor.finished", c.Event)
 		return err
 	}
 	if splitState.IsComplete() {

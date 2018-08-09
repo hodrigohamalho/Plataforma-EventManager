@@ -25,12 +25,15 @@ func HandleGeneralEvent(c *processor.Context) error {
 
 func handleExecutionGeneralEvent(c *processor.Context) error {
 	if events, err := actions.SplitEvent(c.Event); err != nil {
+		log.Error(err)
 		return err
 	} else if err := actions.SaveSplitState(events); err != nil {
+		log.Error(err)
 		return err
 	} else {
 		for _, event := range events {
 			if err := c.Publish("store.executor", event); err != nil {
+				log.Error(err)
 				return err
 			}
 		}
