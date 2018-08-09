@@ -14,9 +14,11 @@ func HandleExceptionEvent(c *processor.Context) error {
 	log.Debug(fmt.Sprintf("HandleExceptionEvent %s on branch %s", c.Event.Name, c.Event.Branch))
 	splitState, err := actions.GetSplitState(c.Event)
 	if err != nil {
+		c.Publish("store.executor.exception", c.Event)
 		return err
 	}
 	if err := actions.UpdateSplitState(c.Event, splitState, domain.Error); err != nil {
+		c.Publish("store.executor.exception", c.Event)
 		return err
 	}
 	return c.Publish("store.executor.exception", c.Event)
