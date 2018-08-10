@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"fmt"
+
 	"github.com/ONSBR/Plataforma-EventManager/processor"
 	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	"github.com/ONSBR/Plataforma-EventManager/util"
@@ -20,6 +22,12 @@ func EnrichEvent(c *processor.Context) (err error) {
 		if err != nil {
 			return err
 		}
+		if len(c.Event.Bindings) > 0 {
+			c.Event.SystemID = c.Event.Bindings[0].SystemID
+		} else {
+			return fmt.Errorf("no binding found for event %s with version %s", c.Event.Name, c.Event.Version)
+		}
+
 	}
 	if c.Event.IdempotencyKey != "" {
 		return
