@@ -23,6 +23,22 @@ func EventCanProceed(event *domain.Event) bool {
 	return resp.Status == 200
 }
 
+func SetReprocessingFailure(event *domain.Event) error {
+	scheme := env.Get("MAESTRO_SCHEME", "http")
+	host := env.Get("MAESTRO_HOST", "localhost")
+	port := env.Get("MAESTRO_PORT", "6971")
+	url := fmt.Sprintf("%s://%s:%s/v1.0.0/reprocessing/failure", scheme, host, port)
+	resp, err := http.Post(url, nil)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	if resp.Status != 200 {
+		return fmt.Errorf(string(resp.Body))
+	}
+	return nil
+}
+
 //InitPersistHandler init maestro persist handling for system
 func InitPersistHandler(event *domain.Event) bool {
 	scheme := env.Get("MAESTRO_SCHEME", "http")
