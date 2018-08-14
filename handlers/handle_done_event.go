@@ -34,6 +34,6 @@ func handleExecutionDone(c *processor.Context) error {
 		//log.Debug("Dispatching done event")
 		return c.Publish("store.executor.finished", c.Event)
 	}
-	//log.Debug(fmt.Sprintf("Supressing event %s on branch %s", c.Event.Name, c.Event.Branch))
-	return c.Publish("store", c.Event)
+	log.Debug(fmt.Sprintf("Supressing event %s on branch %s", c.Event.Name, c.Event.Branch))
+	return c.Publish("store.finished", c.Event)
 }
