@@ -10,7 +10,9 @@ import (
 func Build() {
 	port := infra.GetEnv("PORT", "8081")
 	gin.SetMode(gin.ReleaseMode)
+
 	r := gin.New()
+
 	log.Info("Registering query routes")
 	registerQueryEndpoints(r)
 	log.Info("Registering commands routes")

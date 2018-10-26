@@ -12,10 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func NewInstall() {
-
-}
-
 type CarrotBroker struct {
 	mux        sync.Mutex
 	builder    *carrot.Builder
@@ -206,6 +202,7 @@ func Init() {
 	DeclareQueue(exchangeName, EventstoreQueue, "#.store.#")
 	subConn, _ := carrot.NewBrokerClient(&config)
 	subscriber = carrot.NewSubscriber(subConn)
+	subscriber.SetMaxRetries(30)
 	pubConn, _ := carrot.NewBrokerClient(&config)
 	publisher = carrot.NewPublisher(pubConn)
 	pickerConn, _ := carrot.NewBrokerClient(&config)
