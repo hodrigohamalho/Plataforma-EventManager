@@ -16,6 +16,9 @@ const exchangeName = "events.publish"
 //EventstoreQueue is a queue that will receive all events to be stored in influxdb
 const EventstoreQueue = "event.store.queue"
 
+//EventsReplayQueue is the queue that will receive events if solution is recording events
+const EventsReplayQueue = "event.replay.%s.queue"
+
 //EventPersistQueue is a queue that will receive all persist event
 const EventPersistQueue = "event.persist.queue"
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/ONSBR/Plataforma-EventManager/actions"
 	"github.com/ONSBR/Plataforma-EventManager/processor"
+	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,11 +32,23 @@ func handleExecutionGeneralEvent(c *processor.Context) error {
 		log.Error(err)
 		return err
 	} else {
+		isRecording, err := sdk.IsRecording(c.Event.SystemID)
+		if err != nil {
+			log.Error(err)
+		}
 		for _, event := range events {
-			if err := c.Publish("store.executor", event); err != nil {
-				log.Error(err)
-				return err
+			if isRecording {
+				if err := c.Publish(fmt.Sprintf("replay_%s", c.Event.SystemID), event); err != nil {
+					log.Error(err)
+					return err
+				}
+			} else {
+				if err := c.Publish("store.executor", event); err != nil {
+					log.Error(err)
+					return err
+				}
 			}
+
 		}
 	}
 	return nil
