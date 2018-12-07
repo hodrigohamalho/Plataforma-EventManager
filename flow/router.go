@@ -30,6 +30,11 @@ func GetBasicEventRouter() *processor.Processor {
 			log.Error(err)
 			return err
 		}
+		//TODO
+		/*
+			Caso a aplicação esteja em modo gravação deve-se enviar o evento para ser gravado na fita no servico de replay
+
+		*/
 		return c.Publish("store", c.Event)
 	})
 	return p
