@@ -7,6 +7,7 @@ import (
 	"github.com/ONSBR/Plataforma-EventManager/handlers/middlewares"
 	"github.com/ONSBR/Plataforma-EventManager/infra/factories"
 	"github.com/ONSBR/Plataforma-EventManager/processor"
+	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -30,11 +31,16 @@ func GetBasicEventRouter() *processor.Processor {
 			log.Error(err)
 			return err
 		}
-		//TODO
-		/*
-			Caso a aplicação esteja em modo gravação deve-se enviar o evento para ser gravado na fita no servico de replay
+		isRecording, err := sdk.IsRecording(c.Event.SystemID)
+		if err != nil {
+			log.Error(err)
+		}
+		if isRecording {
+			if err := sdk.RecordEvent(c.Event); err != nil {
+				log.Error(err)
+			}
 
-		*/
+		}
 		return c.Publish("store", c.Event)
 	})
 	return p
