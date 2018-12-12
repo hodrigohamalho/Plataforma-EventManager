@@ -7,6 +7,7 @@ import (
 	"github.com/ONSBR/Plataforma-EventManager/handlers/middlewares"
 	"github.com/ONSBR/Plataforma-EventManager/infra/factories"
 	"github.com/ONSBR/Plataforma-EventManager/processor"
+	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,6 +30,16 @@ func GetBasicEventRouter() *processor.Processor {
 		if err := actions.SaveSplitState([]*domain.Event{c.Event}); err != nil {
 			log.Error(err)
 			return err
+		}
+		isRecording, err := sdk.IsRecording(c.Event.SystemID)
+		if err != nil {
+			log.Error(err)
+		}
+		if isRecording {
+			if err := sdk.RecordEvent(c.Event); err != nil {
+				log.Error(err)
+			}
+
 		}
 		return c.Publish("store", c.Event)
 	})

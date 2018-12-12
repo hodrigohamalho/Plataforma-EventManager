@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ONSBR/Plataforma-Deployer/sdk/apicore"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/PMoneda/carrot"
 	log "github.com/sirupsen/logrus"
@@ -200,6 +201,13 @@ func Init() {
 	DeclareQueue(exchangeName, eventPersistErrorQueue, "#.persist_error.#")
 	DeclareQueue(exchangeName, EventProcessFinishedQueue, "#.finished.#")
 	DeclareQueue(exchangeName, EventstoreQueue, "#.store.#")
+
+	//create one replay queue for each installed system
+	systems := getInstalledSystems()
+	for _, system := range systems {
+		DeclareQueue(exchangeName, fmt.Sprintf(EventsReplayQueue, system), fmt.Sprintf("#.replay_%s.#", system))
+	}
+
 	subConn, _ := carrot.NewBrokerClient(&config)
 	subscriber = carrot.NewSubscriber(subConn)
 	subscriber.SetMaxRetries(30)
@@ -213,6 +221,32 @@ func Init() {
 	carrotBroker.picker = picker
 	carrotBroker.subscriber = subscriber
 	carrotBroker.publisher = publisher
+}
+
+func getInstalledSystems() []string {
+	type system struct {
+		ID string `json:"id"`
+	}
+	list := make([]system, 0)
+	for {
+		err := apicore.Query(apicore.Filter{
+			Map:    "core",
+			Entity: "system",
+			Name:   "",
+		}, &list)
+		if err == nil {
+			break
+		} else {
+			log.Error("cannot connect to apicore retry in 10 seconds...")
+			time.Sleep(10 * time.Second)
+		}
+	}
+
+	ids := make([]string, len(list))
+	for i, v := range list {
+		ids[i] = v.ID
+	}
+	return ids
 }
 
 var carrotBroker *CarrotBroker
