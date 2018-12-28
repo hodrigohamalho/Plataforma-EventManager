@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
@@ -14,6 +15,11 @@ func FinalizeProcessInstance(event *domain.Event) (err error) {
 	log.Debug(fmt.Sprintf("update process instance %s to finished from event %s", id, event.Name))
 	err = sdk.UpdateProcessInstance(id, "finished")
 	if err != nil {
+		if buf, err := json.Marshal(event); err != nil {
+			log.Error(err)
+		} else {
+			log.Error(fmt.Sprintf("raw event: %s", string(buf)))
+		}
 		log.Error(err)
 	}
 	return
